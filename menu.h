@@ -15,4 +15,6 @@
     ==============================*/
     char* menu(void);
 
+    void menu_copy_minigame_frame();
+
 #endif

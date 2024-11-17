@@ -91,6 +91,9 @@ static int item_count;              // The number of selection items in the curr
 static const char *heading;         // The heading of the menu screen
 static int select;                  // The currently selected item
 
+static bool was_minigame = false;
+static surface_t minigame_frame;
+
 /*==============================
     set_menu_screen
     Switches the menu to another screen
@@ -255,7 +258,13 @@ char* menu(void)
         surface_t *disp = display_get();
 
         rdpq_attach(disp, NULL);
-        rdpq_clear(ASH_GRAY);
+
+        //if (was_minigame) {
+        //    rdpq_set_mode_copy(false);
+        //    rdpq_tex_blit(&minigame_frame, 0, 0, NULL);
+        //} else {
+            rdpq_clear(ASH_GRAY);
+        //}
 
         rdpq_textparms_t textparms = {
             .width = 200, .tabstops = (int16_t[]){ 15 },
@@ -340,4 +349,15 @@ char* menu(void)
     #pragma GCC diagnostic ignored "-Warray-bounds"
     return global_minigame_list[sorted_indices[selected_minigame]].internalname;
     #pragma GCC diagnostic pop
+}
+
+void menu_copy_minigame_frame()
+{
+    surface_t frame = display_get_current_framebuffer();
+
+    was_minigame = true;
+    
+    surface_free(&minigame_frame);
+    minigame_frame = surface_alloc(surface_get_format(&frame), frame.width, frame.height);
+    memcpy(minigame_frame.buffer, frame.buffer, frame.stride * frame.height);
 }
