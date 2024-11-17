@@ -102,6 +102,7 @@ int main()
         rspq_wait();
         for (int i=0; i<32; i++)
             mixer_ch_stop(i);
+        //menu_copy_minigame_frame();
         minigame_get_game()->funcPointer_cleanup();
         minigame_cleanup();
 
