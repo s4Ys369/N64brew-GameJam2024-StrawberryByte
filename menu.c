@@ -84,9 +84,6 @@ const char *get_difficulty_name(AiDiff difficulty)
     }
 }
 
-static uint32_t max_playercount;
-static uint32_t playercount = PLAYER_COUNT;
-static AiDiff ai_difficulty = AI_DIFFICULTY;
 static bool is_first_time = true;
 
 static menu_screen current_screen;  // Current menu screen
@@ -107,10 +104,10 @@ void set_menu_screen(menu_screen screen)
     yscroll = 0;
     switch (current_screen) {
     case SCREEN_PLAYERCOUNT:
-        item_count = max_playercount;
-        select = playercount-1;
+        item_count = MAXPLAYERS;
+        select = core_get_playercount()-1;
 
-        if (max_playercount == 0) {
+        if (MAXPLAYERS == 0) {
             heading = "No controllers connected!\n";
         } else {
             heading = "How many players?\n";
@@ -118,7 +115,7 @@ void set_menu_screen(menu_screen screen)
         break;
     case SCREEN_AIDIFFICULTY:
         item_count = DIFF_HARD+1;
-        select = ai_difficulty;
+        select = core_get_aidifficulty();
         heading = "AI difficulty?\n";
         break;
     case SCREEN_MINIGAME:
@@ -137,6 +134,8 @@ void set_menu_screen(menu_screen screen)
 
 char* menu(void)
 {
+    AiDiff difficulty = PLAYER_COUNT;
+    uint8_t playercount = PLAYER_COUNT;
     const color_t BLACK = RGBA32(0x00,0x00,0x00,0xFF);
     const color_t ASH_GRAY = RGBA32(0xAD,0xBA,0xBD,0xFF);
     const color_t MAYA_BLUE = RGBA32(0x6C,0xBE,0xED,0xFF);
@@ -149,6 +148,9 @@ char* menu(void)
 
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
 
+    core_set_aidifficulty(difficulty);
+    core_set_playercount(playercount);
+
     sprite_t *logo = sprite_load("rom:/n64brew.ia8.sprite");
     sprite_t *jam = sprite_load("rom:/jam.rgba32.sprite");
     
@@ -158,10 +160,10 @@ char* menu(void)
 
     rdpq_font_t *fontdbg = rdpq_font_load_builtin(FONT_BUILTIN_DEBUG_VAR);
     rdpq_text_register_font(FONT_DEBUG, fontdbg);
-
-    max_playercount = 0;
+    
+    playercount = 0;
     for (int i = 0; i < MAXPLAYERS; i++) {
-        if (joypad_is_connected(i)) max_playercount++;
+        if (joypad_is_connected(i)) playercount++;
     }
 
     bool has_moved_selection = false;
@@ -219,16 +221,16 @@ char* menu(void)
         if (btn.a) {
             switch (current_screen) {
                 case SCREEN_PLAYERCOUNT:
-                    playercount = select+1;
                     targetscreen = SCREEN_AIDIFFICULTY;
                     if (targetscreen == SCREEN_AIDIFFICULTY && (SKIP_DIFFICULTYSELECTION || playercount == MAXPLAYERS))
                         targetscreen = SCREEN_MINIGAME;
                     if (targetscreen == SCREEN_MINIGAME && SKIP_MINIGAMESELECTION)
                         menu_done = true;
+                    core_set_aidifficulty(select+1);
                     set_menu_screen(targetscreen);
                     break;
                 case SCREEN_AIDIFFICULTY:
-                    ai_difficulty = select;
+                    core_set_aidifficulty(select);
                     if (SKIP_MINIGAMESELECTION)
                         menu_done = true;
                     else
@@ -354,8 +356,6 @@ char* menu(void)
     rdpq_font_free(font);
     rdpq_font_free(fontdbg);
     display_close();
-    core_set_playercount(playercount);
-    core_set_aidifficulty(ai_difficulty);
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Warray-bounds"
     return global_minigame_list[sorted_indices[selected_minigame]].internalname;
