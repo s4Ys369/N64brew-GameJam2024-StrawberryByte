@@ -9,6 +9,7 @@ and provides a basic game loop.
 #include <time.h>
 #include <unistd.h>
 #include "core.h"
+#include "logo.h"
 #include "menu.h"
 #include "config.h"
 #include "minigame.h"
@@ -52,6 +53,11 @@ int main()
     getentropy(&seed, sizeof(seed));
     srand(seed);
     register_VI_handler((void(*)(void))rand);
+
+    if (sys_reset_type() == RESET_COLD) {
+        n64brew_logo();
+        libdragon_logo();
+    }
 
     // Program Loop
     while (1)
