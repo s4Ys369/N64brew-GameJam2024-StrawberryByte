@@ -9,7 +9,7 @@ Vector3 vector3_rotateByQuaternion(const Vector3 *v, const Quaternion *q);
 Vector3 vector3_transformToLocalSpace(const Vector3 *global_point, Vector3 local_center, Vector3 rotation);
 Vector3 vector3_transformToGlobalSpace(const Vector3 *local_point, Vector3 local_center, Vector3 rotation);
 
-Vector3 vector3_reflect(const Vector3* vector, const Vector3* normal);
+Vector3 vector3_reflect(const Vector3 *vector, const Vector3 *normal);
 
 Vector3 vector3_degToRad(const Vector3 *rotation);
 Vector3 vector3_clamp(const Vector3 *vector, float maxLength);
@@ -19,8 +19,8 @@ bool vector3_areOrthogonal(const Vector3 *vector1, const Vector3 *vector2);
 
 void point_rotateZYX(Vector3 *point, const Vector3 *rotation);
 void point_rotateXYZ(Vector3 *point, const Vector3 *rotation);
-void point_transformToLocalSpace(Vector3* global_point, const Vector3* local_center, const Vector3* local_rotation);
-void point_transformToGlobalSpace(Vector3* local_point, const Vector3* local_center, const Vector3* local_rotation);
+void point_transformToLocalSpace(Vector3 *global_point, const Vector3 *local_center, const Vector3 *local_rotation);
+void point_transformToGlobalSpace(Vector3 *local_point, const Vector3 *local_center, const Vector3 *local_rotation);
 
 Vector3 segment_closestToPoint(const Vector3 *seg_a, const Vector3 *seg_b, const Vector3 *point_c);
 void segment_closestPointsWithSegment(const Vector3 *seg1_a, const Vector3 *seg1_b, const Vector3 *seg2_a, const Vector3 *seg2_b, Vector3 *closest_seg1, Vector3 *closest_seg2);
@@ -37,7 +37,6 @@ Matrix3x3 rotationMatrix_getFromEuler(const Vector3 *rotation);
 void rotate_normal(Vector3 *vector, const Vector3 *rotation);
 
 Vector3 vector3_fromQuaternion(Quaternion q);
-
 
 // function implementations
 
@@ -60,9 +59,8 @@ inline Vector3 vector3_rotateByQuaternion(const Vector3 *v, const Quaternion *q)
     Vector3 rv3 = vector3_returnScaled(&crossProduct, 2.0f * s);
 
     Vector3 result = vector3_sum(&rv1, &rv2);
-    
-    return vector3_sum(&result, &rv3);
 
+    return vector3_sum(&result, &rv3);
 }
 
 inline Vector3 vector3_transformToLocalSpace(const Vector3 *global_point, Vector3 local_center, Vector3 rotation)
@@ -125,7 +123,7 @@ inline Vector3 vector3_clamp(const Vector3 *vector, float maxLength)
     return *vector;
 }
 
-inline Vector3 vector3_reflect(const Vector3* vector, const Vector3* normal)
+inline Vector3 vector3_reflect(const Vector3 *vector, const Vector3 *normal)
 {
     Vector3 scaled_normal = vector3_returnScaled(normal, vector3_returnDotProduct(vector, normal) * 2.0f);
     return vector3_difference(vector, &scaled_normal);
@@ -149,8 +147,10 @@ inline Vector3 segment_closestToPoint(const Vector3 *seg_a, const Vector3 *seg_b
     float t = (ac.x * ab.x + ac.y * ab.y + ac.z * ab.z) / abLengthSquare;
 
     // If projected point onto the line is outside the segment, clamp it to the segment
-    if (t < 0.0f) t = 0.0f;
-    if (t > 1.0f) t = 1.0f;
+    if (t < 0.0f)
+        t = 0.0f;
+    if (t > 1.0f)
+        t = 1.0f;
 
     // Return the closest point on the segment
     return (Vector3){seg_a->x + t * ab.x, seg_a->y + t * ab.y, seg_a->z + t * ab.z};
@@ -159,8 +159,8 @@ inline Vector3 segment_closestToPoint(const Vector3 *seg_a, const Vector3 *seg_b
 /* segment_closestPointInBetween
 compute the closest points between two segments */
 inline void segment_closestPointsWithSegment(const Vector3 *seg1_a, const Vector3 *seg1_b,
-                                          const Vector3 *seg2_a, const Vector3 *seg2_b,
-                                          Vector3 *closest_seg1, Vector3 *closest_seg2)
+                                             const Vector3 *seg2_a, const Vector3 *seg2_b,
+                                             Vector3 *closest_seg1, Vector3 *closest_seg2)
 {
 
     Vector3 d1 = {seg1_b->x - seg1_a->x, seg1_b->y - seg1_a->y, seg1_b->z - seg1_a->z};
@@ -421,7 +421,7 @@ void point_rotateXYZ(Vector3 *point, const Vector3 *rotation)
     point->z = zY;
 }
 
-void point_transformToLocalSpace(Vector3* global_point, const Vector3* local_center, const Vector3* local_rotation) 
+void point_transformToLocalSpace(Vector3 *global_point, const Vector3 *local_center, const Vector3 *local_rotation)
 {
     // Translate point by the inverse of Box's center
     vector3_subtract(global_point, local_center);
@@ -431,7 +431,7 @@ void point_transformToLocalSpace(Vector3* global_point, const Vector3* local_cen
     point_rotateZYX(global_point, &inverse_rotation);
 }
 
-void point_transformToGlobalSpace(Vector3* local_point, const Vector3* local_center, const Vector3* local_rotation)
+void point_transformToGlobalSpace(Vector3 *local_point, const Vector3 *local_center, const Vector3 *local_rotation)
 {
     // Apply rotation to the local point to get it in the global space orientation
     Vector3 inverse_rotation = vector3_getInverse(local_rotation);
@@ -468,7 +468,7 @@ inline Vector3 vector3_fromQuaternion(Quaternion q)
     // Pitch (Y-axis rotation)
     float sinp = 2 * (q.w * q.y - q.z * q.x);
     if (fabs(sinp) >= 1)
-        euler.y = copysignf(M_PI / 2, sinp);  // Use 90 degrees if out of range
+        euler.y = copysignf(M_PI / 2, sinp); // Use 90 degrees if out of range
     else
         euler.y = asinf(sinp);
 

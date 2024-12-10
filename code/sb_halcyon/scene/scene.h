@@ -3,11 +3,10 @@
 
 typedef struct
 {
-	Camera camera;
-	LightData light;
+    Camera camera;
+    LightData light;
 
-}Scene;
-
+} Scene;
 
 void scene_init(Scene *scene)
 {

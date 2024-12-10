@@ -20,5 +20,4 @@
 
 #include "math_functions.h"
 
-
 #endif

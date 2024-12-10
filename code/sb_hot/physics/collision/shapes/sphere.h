@@ -3,18 +3,16 @@
 
 // structures
 
-typedef struct {
+typedef struct
+{
     Vector3 center;
     float radius;
 } Sphere;
 
+bool sphere_contactSphere(const Sphere *s, const Sphere *t);
+void sphere_collisionTestSphere(ContactData *contact, const Sphere *s, const Sphere *t);
 
-
-bool sphere_contactSphere(const Sphere* s, const Sphere* t);
-void sphere_collisionTestSphere(ContactData* contact, const Sphere* s, const Sphere* t);
-
-
-bool sphere_contactSphere(const Sphere* s, const Sphere* t) 
+bool sphere_contactSphere(const Sphere *s, const Sphere *t)
 {
     float radiusSum = s->radius + t->radius;
 
@@ -24,7 +22,7 @@ bool sphere_contactSphere(const Sphere* s, const Sphere* t)
     return vector3_squaredMagnitude(&diff) <= radiusSum * radiusSum;
 }
 
-void sphere_collisionTestSphere(ContactData *contact, const Sphere *s, const Sphere *t) 
+void sphere_collisionTestSphere(ContactData *contact, const Sphere *s, const Sphere *t)
 {
     // Calculate the normal pointing towards the first sphere
     contact->normal = vector3_difference(&t->center, &s->center);
@@ -34,8 +32,7 @@ void sphere_collisionTestSphere(ContactData *contact, const Sphere *s, const Sph
     contact->point = (Vector3){
         t->center.x - contact->normal.x * t->radius,
         t->center.y - contact->normal.y * t->radius,
-        t->center.z - contact->normal.z * t->radius
-    };
+        t->center.z - contact->normal.z * t->radius};
 }
 
 #endif

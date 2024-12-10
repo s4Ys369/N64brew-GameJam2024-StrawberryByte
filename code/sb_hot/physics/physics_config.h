@@ -12,5 +12,4 @@
 /* A numeric tolerance value used to handle floating-point precision issues. */
 #define TOLERANCE 1e-3f
 
-
 #endif

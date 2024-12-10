@@ -7,8 +7,7 @@
 #include <t3d/t3ddebug.h>
 
 // May make this an easter egg
-//#define AI_BATTLE
-
+// #define AI_BATTLE
 
 // This define is to test if running the game loop
 // in the fixed or the delta matters
@@ -74,17 +73,14 @@
 #include "game/game_control.h"
 #include "game/game_states.h"
 
-
 const MinigameDef minigame_def = {
     .gamename = "Hot Hot Hexagons",
     .developername = "Strawberry Byte: .zoncabe, s4ys, mewde, kaelin",
     .description = "The floor is lava!",
-    .instructions = "Jump from platform to platform\nto avoid a terrible fate."
-};
+    .instructions = "Jump from platform to platform\nto avoid a terrible fate."};
 
 Game minigame = {
-	.state = INTRO
-};
+    .state = INTRO};
 
 Player player[MAXPLAYERS];
 
@@ -99,10 +95,10 @@ ActorContactData actor_contact[ACTOR_COUNT];
 Scenery scenery[SCENERY_COUNT];
 
 void minigame_init()
-{      
-	game_init(&minigame);
+{
+    game_init(&minigame);
 #ifdef PROFILING
-    //rdpq_debug_start();
+    // rdpq_debug_start();
     profile_data.frame_count = 0;
     rspq_profile_start();
 #endif
@@ -116,18 +112,19 @@ void minigame_init()
     actors[MEW] = actor_create(2, "rom:/strawberry_byte/mew.t3dm");
     actors[DOGMAN] = actor_create(3, "rom:/strawberry_byte/dogman.t3dm");
 
-    for (uint8_t i = 0; i < ACTOR_COUNT; i++) {
+    for (uint8_t i = 0; i < ACTOR_COUNT; i++)
+    {
         actor_init(&actors[i]);
         actorCollider_init(&actor_collider[i]);
         actor_collider[i].settings.body_radius = 35.0f;
         actor_collider[i].settings.body_height = 190.f;
 
-		actors[i].body.position.y = -800.0f;
+        actors[i].body.position.y = -800.0f;
         actors[i].body.rotation.x = 25.0f;
-		actors[i].body.position.z = 450.0f;
+        actors[i].body.position.z = 450.0f;
 
         // Evenly space characters along x-axis
-        float spacing = 100.0f;  // Distance between characters
+        float spacing = 100.0f; // Distance between characters
         actors[i].body.position.x = -((ACTOR_COUNT - 1) * spacing) / 2 + i * spacing;
 
         actors[i].home = actors[i].body.position;
@@ -136,15 +133,16 @@ void minigame_init()
     }
 
     // AI
-    for (uint8_t i = 0; i < AI_COUNT; i++) {
+    for (uint8_t i = 0; i < AI_COUNT; i++)
+    {
         ai_init(&aiPlayer[i], core_get_aidifficulty());
     }
-    
-	// scenery
+
+    // scenery
     scenery[0] = scenery_create(0, "rom:/strawberry_byte/lava.t3dm");
 
     for (uint8_t i = 0; i < SCENERY_COUNT; i++)
-	{
+    {
         scenery_set(&scenery[i]);
     }
 
@@ -153,7 +151,6 @@ void minigame_init()
 
     // Sound: Play lava SFX
     sound_wavPlayBG(SFX_LAVA);
-
 }
 
 #ifdef FIXED
@@ -196,15 +193,17 @@ void minigame_cleanup()
     ptx_cleanup(&lavaBubbles);
 
     // Step 3: Destroy Tiny3D models, matrices, animations and RSPQ blocks
-	for (uint8_t i = 0; i < ACTOR_COUNT; i++) {
+    for (uint8_t i = 0; i < ACTOR_COUNT; i++)
+    {
 
-		actor_delete(&actors[i]);
-	};
+        actor_delete(&actors[i]);
+    };
 
-    for (uint8_t i = 0; i < SCENERY_COUNT; i++) {
+    for (uint8_t i = 0; i < SCENERY_COUNT; i++)
+    {
 
-		scenery_delete(&scenery[i]);
-	}
+        scenery_delete(&scenery[i]);
+    }
     platform_destroy(hexagons);
     t3d_destroy(); // Then destroy library
 

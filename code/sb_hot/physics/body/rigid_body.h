@@ -8,8 +8,8 @@
 #ifndef RIGID_BODY_H
 #define RIGID_BODY_H
 
-
-typedef struct RigidBody {
+typedef struct RigidBody
+{
 
     Vector3 acceleration;
     Vector3 velocity;
@@ -17,12 +17,9 @@ typedef struct RigidBody {
     Vector3 rotation;
 
     Vector3 previous_position;
-    
-    //Quaternion orientation;
 
+    // Quaternion orientation;
 
 } RigidBody;
-
-
 
 #endif

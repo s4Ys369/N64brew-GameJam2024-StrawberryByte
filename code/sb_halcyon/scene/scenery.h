@@ -1,22 +1,22 @@
 #ifndef SCENERY_H
 #define SCENERY_H
 
-
 // structures
 
-typedef struct {
+typedef struct
+{
 
-  	uint32_t id;
-	rspq_block_t *dl;
-	T3DMat4FP *modelMat;
-	T3DModel *model;
+    uint32_t id;
+    rspq_block_t *dl;
+    T3DMat4FP *modelMat;
+    T3DModel *model;
 
     float tile_offset;
     float transform_offset;
-    
-	Vector3 scale;
-	Vector3 position;
-	Vector3 rotation;
+
+    Vector3 scale;
+    Vector3 position;
+    Vector3 rotation;
 
 } Scenery;
 
@@ -27,8 +27,7 @@ void scenery_set(Scenery *scenery);
 void scenery_draw(Scenery *scenery);
 void scenery_delete(Scenery *scenery);
 
-
-//function implementations
+// function implementations
 
 Scenery scenery_create(uint32_t id, const char *model_path)
 {
@@ -53,29 +52,28 @@ Scenery scenery_create(uint32_t id, const char *model_path)
 }
 
 void scenery_set(Scenery *scenery)
-{   
-    
-    t3d_mat4fp_from_srt_euler(scenery->modelMat,
-        (float[3]){scenery->scale.x, scenery->scale.y, scenery->scale.z},
-        (float[3]){rad(scenery->rotation.x), rad(scenery->rotation.y), rad(scenery->rotation.z)},
-        (float[3]){scenery->position.x, scenery->position.y, scenery->position.z}
-    );
+{
 
+    t3d_mat4fp_from_srt_euler(scenery->modelMat,
+                              (float[3]){scenery->scale.x, scenery->scale.y, scenery->scale.z},
+                              (float[3]){rad(scenery->rotation.x), rad(scenery->rotation.y), rad(scenery->rotation.z)},
+                              (float[3]){scenery->position.x, scenery->position.y, scenery->position.z});
 }
 
 void scenery_draw(Scenery *scenery)
 {
     rdpq_mode_zbuf(false, true);
-    for (int i = 0; i < SCENERY_COUNT; i++) {
+    for (int i = 0; i < SCENERY_COUNT; i++)
+    {
         rspq_block_run(scenery[i].dl);
-	};
+    };
     rdpq_mode_zbuf(true, true);
 }
 
 void scenery_delete(Scenery *scenery)
 {
     free_uncached(scenery->modelMat);
-	t3d_model_free(scenery->model);
+    t3d_model_free(scenery->model);
     rspq_block_free(scenery->dl);
 }
 

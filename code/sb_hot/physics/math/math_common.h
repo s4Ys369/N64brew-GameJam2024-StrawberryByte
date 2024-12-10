@@ -1,7 +1,6 @@
 #ifndef PHYSICS_MATH_COMMON_H
 #define PHYSICS_MATH_COMMON_H
 
-
 #define PI 3.141592653589f
 #define PI_TIMES_2 6.28318530f
 
@@ -28,24 +27,24 @@ bool approxEqual(float a, float b);
 
 bool isfinite(float x);
 
-
 /* quick inverse square root */
-inline float qi_sqrt(float number) 
+inline float qi_sqrt(float number)
 {
     float x2, y;
     const float threehalfs = 1.5F;
 
     x2 = number * 0.5F;
-    y  = number;
+    y = number;
 
-    union {
+    union
+    {
         float f;
         long l;
     } converter;
 
-    converter.f = y; // Almacena el float en la unión
+    converter.f = y;                               // Almacena el float en la unión
     converter.l = 0x5f3759df - (converter.l >> 1); // Manipula los bits como long
-    y = converter.f; // Recupera el resultado como float
+    y = converter.f;                               // Recupera el resultado como float
 
     y = y * (threehalfs - (x2 * y * y)); // 1st iteration
     y = y * (threehalfs - (x2 * y * y)); // 2nd iteration (puede eliminarse)
@@ -56,38 +55,39 @@ inline float qi_sqrt(float number)
 /* degrees to radians */
 inline float rad(float angle)
 {
-	return PI / 180 * angle;
+    return PI / 180 * angle;
 }
 
 /* radians to degrees */
 inline float deg(float rad)
 {
-	return 180 / PI * rad;
+    return 180 / PI * rad;
 }
-
 
 /* return the result of the "value" clamped by "lowerLimit" and "upperLimit" */
 inline int clamp_int(int value, int lowerLimit, int upperLimit)
 {
     assert(lowerLimit <= upperLimit);
-    return (value < lowerLimit) ? lowerLimit : (value > upperLimit) ? upperLimit : value;
+    return (value < lowerLimit) ? lowerLimit : (value > upperLimit) ? upperLimit
+                                                                    : value;
 }
 
 /* return the result of the "value" clamped by "lowerLimit" and "upperLimit" */
 inline float clamp(float value, float lowerLimit, float upperLimit)
 {
     assert(lowerLimit <= upperLimit);
-    return (value < lowerLimit) ? lowerLimit : (value > upperLimit) ? upperLimit : value;
+    return (value < lowerLimit) ? lowerLimit : (value > upperLimit) ? upperLimit
+                                                                    : value;
 }
 
 /* return higher value*/
-inline float max2(float a, float b) 
+inline float max2(float a, float b)
 {
     return (a > b) ? a : b;
 }
 
 /* return lower value*/
-inline float min2(float a, float b) 
+inline float min2(float a, float b)
 {
     return (a < b) ? a : b;
 }
@@ -112,16 +112,14 @@ inline bool sameSign(float a, float b)
 
 /* Function to test if two real numbers are (almost) equal
 We test if two numbers a and b are such that (a-b) are in [-EPSILON; EPSILON] */
-inline bool approxEqual(float a, float b) 
+inline bool approxEqual(float a, float b)
 {
     return (fabsf(a - b) < FLT_EPSILON);
 }
-
 
 inline bool isfinite(float x)
 {
     return (x == x) && (x != INFINITY) && (x != -INFINITY);
 }
-
 
 #endif

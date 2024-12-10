@@ -1,14 +1,15 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-typedef struct {
+typedef struct
+{
 
   Box box[3];
 
 } PlatformCollider;
 
-
-typedef struct {
+typedef struct
+{
 
   uint32_t id;
   T3DMat4FP *mat;
@@ -22,13 +23,14 @@ typedef struct {
 
 } Platform;
 
-#define OFFSET  350
+#define OFFSET 350
 #define GRID_SIZE OFFSET // Size of each grid cell
 #define MAX_GRID_CELLS 7 // Adjust based on level size
 
-typedef struct {
+typedef struct
+{
   size_t platformIndices[PLATFORM_COUNT]; // Indices of platforms in this cell
-  size_t count; // Number of platforms in this cell
+  size_t count;                           // Number of platforms in this cell
 } PlatformGridCell;
 
 PlatformGridCell platformGrid[MAX_GRID_CELLS][MAX_GRID_CELLS];
@@ -37,15 +39,15 @@ Platform hexagons[PLATFORM_COUNT];
 
 // Forward Declarations
 
-void platform_init(Platform* platform, T3DModel* model, Vector3 position, color_t color);
-void platform_loop(Platform* platform, Actor* actor, int diff);
+void platform_init(Platform *platform, T3DModel *model, Vector3 position, color_t color);
+void platform_loop(Platform *platform, Actor *actor, int diff);
 void platform_drawBatch(void);
-void platform_hexagonGrid(Platform* platform, T3DModel* model, float z, color_t color);
-void platform_destroy(Platform* platform);
+void platform_hexagonGrid(Platform *platform, T3DModel *model, float z, color_t color);
+void platform_destroy(Platform *platform);
 
 // Definitions
 
-void platform_init(Platform* platform, T3DModel* model, Vector3 position, color_t color)
+void platform_init(Platform *platform, T3DModel *model, Vector3 position, color_t color)
 {
 
   static uint32_t platformIdx = 0;
@@ -58,16 +60,16 @@ void platform_init(Platform* platform, T3DModel* model, Vector3 position, color_
   // Initialize the three boxes for collision within each hexagon
   for (int j = 0; j < 3; j++)
   {
-    platform->collider.box[j] = (Box) {
-      .size = {200.0f, 300.0f,75.0f},
-      .center = platform->position,
-      .rotation = { 
-        // Set only Z rotation explicitly
-        0.0f,
-        0.0f,
-        (j == 0) ? 0.0f : (j == 1) ? 30.0f : -30.0f   // Z rotation for boxes[0], boxes[1], and boxes[2]
-      }
-    };
+    platform->collider.box[j] = (Box){
+        .size = {200.0f, 300.0f, 75.0f},
+        .center = platform->position,
+        .rotation = {
+            // Set only Z rotation explicitly
+            0.0f,
+            0.0f,
+            (j == 0) ? 0.0f : (j == 1) ? 30.0f
+                                       : -30.0f // Z rotation for boxes[0], boxes[1], and boxes[2]
+        }};
   }
 
   platform->color = color; // Set color
@@ -77,20 +79,20 @@ void platform_init(Platform* platform, T3DModel* model, Vector3 position, color_
   platform->contact = false;
 
   platformIdx++;
-
 }
 
-void platform_assignGrid(Platform* platforms) {
+void platform_assignGrid(Platform *platforms)
+{
   memset(platformGrid, 0, sizeof(platformGrid)); // Clear the grid
 
   for (size_t i = 0; i < PLATFORM_COUNT; i++)
   {
-    int xCell = (int)fm_floorf((platforms[i].position.x + (OFFSET*2)) / GRID_SIZE);
-    int yCell = (int)fm_floorf((platforms[i].position.y + (OFFSET*2)) / GRID_SIZE);
+    int xCell = (int)fm_floorf((platforms[i].position.x + (OFFSET * 2)) / GRID_SIZE);
+    int yCell = (int)fm_floorf((platforms[i].position.y + (OFFSET * 2)) / GRID_SIZE);
 
-    if (xCell >= 0 && xCell < MAX_GRID_CELLS && yCell >= 0 && yCell < MAX_GRID_CELLS) 
+    if (xCell >= 0 && xCell < MAX_GRID_CELLS && yCell >= 0 && yCell < MAX_GRID_CELLS)
     {
-      PlatformGridCell* cell = &platformGrid[xCell][yCell];
+      PlatformGridCell *cell = &platformGrid[xCell][yCell];
       if (cell->count < PLATFORM_COUNT) // Ensure we don't exceed bounds
         cell->platformIndices[cell->count++] = i;
     }
@@ -100,9 +102,9 @@ void platform_assignGrid(Platform* platforms) {
 //// BEHAVIORS ~ Start ////
 
 // Example behavior: Oscillate platform x position to simulate shake
-void platform_shake(Platform* platform, float time)
+void platform_shake(Platform *platform, float time)
 {
-  float amplitude = 10.0f; // Maximum oscillation distance from home
+  float amplitude = 10.0f;        // Maximum oscillation distance from home
   float baseX = platform->home.x; // Use a stored "home" position for the base
 
   // Oscillate `platform->position.x` around `baseX`
@@ -110,21 +112,24 @@ void platform_shake(Platform* platform, float time)
 }
 
 // Example behavior: Lower platform over time
-void platform_updateHeight(Platform* platform, float time)
+void platform_updateHeight(Platform *platform, float time)
 {
-  if (platform->position.z > -150.0f) platform->position.z = platform->position.z - time;
+  if (platform->position.z > -150.0f)
+    platform->position.z = platform->position.z - time;
 }
 
-void platform_collideCheck(Platform* platform, Actor* actor)
+void platform_collideCheck(Platform *platform, Actor *actor)
 {
-  if(platform->contact) return; // If already in collided state, do nothing
+  if (platform->contact)
+    return; // If already in collided state, do nothing
 
   const float squaredDistanceThreshold = 150.0f * 150.0f;
 
   for (size_t i = 0; i < ACTOR_COUNT; i++)
   {
     // Skip actors that are not grounded (not relevant for collision)
-    if (!actor[i].grounded) continue;
+    if (!actor[i].grounded)
+      continue;
 
     // Calculate the difference vector
     Vector3 diff = vector3_difference(&platform->position, &actor[i].body.position);
@@ -138,13 +143,12 @@ void platform_collideCheck(Platform* platform, Actor* actor)
       return; // Exit early on first collision
     }
   }
-
 }
 
-void platform_collideCheckOptimized(Platform* platforms, Actor* actor)
+void platform_collideCheckOptimized(Platform *platforms, Actor *actor)
 {
-  int xCell = (int)floorf((actor->body.position.x + (OFFSET*2)) / GRID_SIZE);
-  int yCell = (int)floorf((actor->body.position.y + (OFFSET*2)) / GRID_SIZE);
+  int xCell = (int)floorf((actor->body.position.x + (OFFSET * 2)) / GRID_SIZE);
+  int yCell = (int)floorf((actor->body.position.y + (OFFSET * 2)) / GRID_SIZE);
 
   if (xCell < 0 || xCell >= MAX_GRID_CELLS || yCell < 0 || yCell >= MAX_GRID_CELLS)
   {
@@ -163,7 +167,7 @@ void platform_collideCheckOptimized(Platform* platforms, Actor* actor)
 
       if (nx >= 0 && nx < MAX_GRID_CELLS && ny >= 0 && ny < MAX_GRID_CELLS)
       {
-        PlatformGridCell* cell = &platformGrid[nx][ny];
+        PlatformGridCell *cell = &platformGrid[nx][ny];
         for (size_t i = 0; i < cell->count; i++)
         {
           size_t platformIndex = cell->platformIndices[i];
@@ -179,52 +183,59 @@ void platform_collideCheckOptimized(Platform* platforms, Actor* actor)
   }
 }
 
-
-void platform_loop(Platform* platform, Actor* actor, int diff)
+void platform_loop(Platform *platform, Actor *actor, int diff)
 {
   int difficulty = (core_get_playercount() == 4) ? diff : DIFF_EASY;
 
   // Translate collision
-  for (int j = 0; j < 3; j++) platform->collider.box[j].center = platform->position;
+  for (int j = 0; j < 3; j++)
+    platform->collider.box[j].center = platform->position;
 
   // Run behaviors
-  //if(actor != NULL) platform_collideCheck(platform, actor);
-  if(platform->contact) 
+  // if(actor != NULL) platform_collideCheck(platform, actor);
+  if (platform->contact)
   {
     platform->platformTimer++;
 
     // Action 1: Play sound
-    if(platform->platformTimer > 0 && platform->platformTimer < 2)
+    if (platform->platformTimer > 0 && platform->platformTimer < 2)
     {
       sound_wavPlay(SFX_STONES, false);
 
-    // Action 2: Shake platform
-    } else if(platform->platformTimer < 60) {
+      // Action 2: Shake platform
+    }
+    else if (platform->platformTimer < 60)
+    {
       platform_shake(platform, platform->platformTimer);
-    
-    // Action 3: Drop platform
-    } else if(platform->platformTimer > 60 && platform->platformTimer < 240) {
+
+      // Action 3: Drop platform
+    }
+    else if (platform->platformTimer > 60 && platform->platformTimer < 240)
+    {
       platform_updateHeight(platform, 2.0f + difficulty);
 
-    // Action 4: Reset to idle
-    } else if(platform->platformTimer > (200 * (difficulty+1))){
+      // Action 4: Reset to idle
+    }
+    else if (platform->platformTimer > (200 * (difficulty + 1)))
+    {
       platform->contact = false;
     }
-  } else {
+  }
+  else
+  {
 
     // Reset to initial position
     platform->platformTimer = 0;
-    if(platform->position.z < platform->home.z) platform->position.z = platform->position.z + 1.0f + difficulty; 
+    if (platform->position.z < platform->home.z)
+      platform->position.z = platform->position.z + 1.0f + difficulty;
   }
 
   // Update matrix
   t3d_mat4fp_from_srt_euler(
-    platform->mat,
-    (float[3]){1.0f,1.0f,1.0f},
-    (float[3]){0.0f,0.0f,0.0f},
-    (float[3]){platform->position.x, platform->position.y, platform->position.z}
-  );
-
+      platform->mat,
+      (float[3]){1.0f, 1.0f, 1.0f},
+      (float[3]){0.0f, 0.0f, 0.0f},
+      (float[3]){platform->position.x, platform->position.y, platform->position.z});
 }
 
 //// BEHAVIORS ~ End ////
@@ -232,17 +243,18 @@ void platform_loop(Platform* platform, Actor* actor, int diff)
 //// RENDERING ~ Start ////
 
 // T3D MODEL DRAW BATCHING
-#define BATCH_LIMIT 19     // Number of objects per rspq block
-#define BLOCK_COUNT 1    // Pre-calculated block count
+#define BATCH_LIMIT 19 // Number of objects per rspq block
+#define BLOCK_COUNT 1  // Pre-calculated block count
 
 T3DModel *batchModel = NULL;
-rspq_block_t* rspqBlocks[BLOCK_COUNT] = {NULL};  // Static array of rspq block pointers
-rspq_block_t* materialBlock = NULL; // Block for single material load and draw
+rspq_block_t *rspqBlocks[BLOCK_COUNT] = {NULL}; // Static array of rspq block pointers
+rspq_block_t *materialBlock = NULL;             // Block for single material load and draw
 
-void platform_createBatch(Platform* platform, T3DModel* model)
+void platform_createBatch(Platform *platform, T3DModel *model)
 {
   // Load model once for the entire batch if not already loaded
-  if (batchModel == NULL) {
+  if (batchModel == NULL)
+  {
     batchModel = model;
   }
 
@@ -254,7 +266,7 @@ void platform_createBatch(Platform* platform, T3DModel* model)
 
   // Create material RSPQ block to run before drawing objects
   rspq_block_begin();
-    t3d_model_draw_material(platform[0].obj->material, NULL);
+  t3d_model_draw_material(platform[0].obj->material, NULL);
   materialBlock = rspq_block_end();
 
   // Initialize the rspq block index and start a new rspq block
@@ -272,13 +284,13 @@ void platform_createBatch(Platform* platform, T3DModel* model)
     // End the current rspq block and start a new one every n objects
     if ((i + 1) % BATCH_LIMIT == 0 || i == PLATFORM_COUNT - 1)
     {
-      rspqBlocks[blockIndex] = rspq_block_end();  // Store the completed rspq block
+      rspqBlocks[blockIndex] = rspq_block_end(); // Store the completed rspq block
       blockIndex++;
-      if (i < PLATFORM_COUNT - 1) rspq_block_begin();  // Start a new rspq block if more objects remain
+      if (i < PLATFORM_COUNT - 1)
+        rspq_block_begin(); // Start a new rspq block if more objects remain
     }
   }
 }
-
 
 // Iterate through and run RSPQ blocks
 void platform_drawBatch(void)
@@ -289,7 +301,7 @@ void platform_drawBatch(void)
 
   for (size_t i = 0; i < BLOCK_COUNT; i++)
   {
-    if (rspqBlocks[i] != NULL)  // Check for NULL before running
+    if (rspqBlocks[i] != NULL) // Check for NULL before running
     {
       rspq_block_run(rspqBlocks[i]);
     }
@@ -297,14 +309,14 @@ void platform_drawBatch(void)
 }
 
 // Generate a hexagonal grid of 19 platforms at desired height, with desired model and color
-void platform_hexagonGrid(Platform* platform, T3DModel* model, float z, color_t color)
+void platform_hexagonGrid(Platform *platform, T3DModel *model, float z, color_t color)
 {
-  float x_offset = OFFSET;    // Horizontal distance between centers of adjacent columns
-  float y_offset = OFFSET;    // Vertical distance between centers of adjacent rows
-  float start_x = 0.0f;       // Starting X coordinate for the first row
-  float start_y = -500.0f;       // Starting Y coordinate for the first row
+  float x_offset = OFFSET; // Horizontal distance between centers of adjacent columns
+  float y_offset = OFFSET; // Vertical distance between centers of adjacent rows
+  float start_x = 0.0f;    // Starting X coordinate for the first row
+  float start_y = -500.0f; // Starting Y coordinate for the first row
 
-  int rows[] = {3, 4, 5, 4, 3};  // Number of hexagons per row
+  int rows[] = {3, 4, 5, 4, 3}; // Number of hexagons per row
   int hexagon_index = 0;
 
   for (int row_index = 0; row_index < 5; row_index++)
@@ -330,25 +342,27 @@ void platform_hexagonGrid(Platform* platform, T3DModel* model, float z, color_t 
   platform_assignGrid(platform);
 
   platform_createBatch(platform, model);
-
 }
 
 // Frees T3D model, matrices and RSPQ Blocks used for rendering
-void platform_destroy(Platform* platform)
+void platform_destroy(Platform *platform)
 {
   rspq_block_free(materialBlock);
 
   for (size_t b = 0; b < BLOCK_COUNT; b++)
   {
-    if(rspqBlocks[b] != NULL) rspq_block_free(rspqBlocks[b]);
+    if (rspqBlocks[b] != NULL)
+      rspq_block_free(rspqBlocks[b]);
   }
 
   for (size_t p = 0; p < PLATFORM_COUNT; p++)
   {
-    if(platform[p].mat != NULL) free_uncached(platform[p].mat);
+    if (platform[p].mat != NULL)
+      free_uncached(platform[p].mat);
   }
 
-  if(batchModel != NULL) t3d_model_free(batchModel);
+  if (batchModel != NULL)
+    t3d_model_free(batchModel);
 }
 
 #endif // PLATFORM_H

@@ -1,25 +1,24 @@
 #ifndef LIGHT_H
 #define LIGHT_H
 
+typedef struct
+{
 
-typedef struct{
-
-	uint8_t ambient_color[4];
-	uint8_t directional_color1[4];
-	T3DVec3 direction1;
+    uint8_t ambient_color[4];
+    uint8_t directional_color1[4];
+    T3DVec3 direction1;
 
     uint8_t directional_color2[4];
     T3DVec3 direction2;
-	
-} LightData;
 
+} LightData;
 
 void light_set(LightData *light);
 void light_setAmbient(LightData *light, uint8_t value);
 void light_resetAmbient(LightData *light);
 
-
-LightData light_create() {
+LightData light_create()
+{
     LightData light = {
         .ambient_color = {245, 232, 196, 0xFF},
         .directional_color1 = {245, 232, 196, 0xFF},
@@ -46,17 +45,17 @@ void light_set(LightData *light)
 void light_setAmbient(LightData *light, uint8_t value)
 {
     for (size_t i = 0; i < 3; i++)
-	{
-		light->ambient_color[i] = value;
-	}
+    {
+        light->ambient_color[i] = value;
+    }
     light_set(light);
 }
 
 void light_resetAmbient(LightData *light)
 {
     light->ambient_color[0] = 0x32;
-	light->ambient_color[1] = 0x20;
-	light->ambient_color[2] = 0x06;
+    light->ambient_color[1] = 0x20;
+    light->ambient_color[2] = 0x06;
     light_set(light);
 }
 

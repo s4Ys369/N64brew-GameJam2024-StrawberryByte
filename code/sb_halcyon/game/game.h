@@ -1,9 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
-
-
-enum GAME_STATES {
+enum GAME_STATES
+{
 	INTRO,
 	MAIN_MENU,
 	CHARACTER_SELECT,
@@ -12,14 +11,13 @@ enum GAME_STATES {
 	GAME_OVER
 };
 
-
 typedef struct
 {
 
-    uint8_t state;
-    Screen screen;
-    TimeData timing;
-  	rspq_syncpoint_t syncPoint;
+	uint8_t state;
+	Screen screen;
+	TimeData timing;
+	rspq_syncpoint_t syncPoint;
 	int diff;
 	int8_t winTimer;
 	uint8_t winnerID;
@@ -28,13 +26,11 @@ typedef struct
 	uint8_t deadPool;
 	bool actorSet;
 	bool winnerSet;
-    Scene scene;
+	Scene scene;
 
-}Game;
-
+} Game;
 
 void game_init(Game *game);
-
 
 void game_init(Game *game)
 {
@@ -49,19 +45,18 @@ void game_init(Game *game)
 
 	time_init(&game->timing);
 
-    scene_init(&game->scene);
+	scene_init(&game->scene);
 
 	//
 	ui_init();
 	sound_load();
 	//
-	
+
 	game->countdownTimer = 150; // Oops, forget to set this
-  	game->syncPoint = 0;
+	game->syncPoint = 0;
 	game->state = INTRO;
 	game->humanCount = core_get_playercount();
 	game->deadPool = 0;
 }
-
 
 #endif

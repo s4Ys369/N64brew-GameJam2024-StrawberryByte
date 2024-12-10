@@ -1,7 +1,6 @@
 #ifndef TIME_H
 #define TIME_H
 
-
 // structures
 
 typedef struct
@@ -15,12 +14,10 @@ typedef struct
 
 } TimeData;
 
-
 // functions prototypes
 
 void time_init(TimeData *time);
 void time_setData(TimeData *time);
-
 
 // functions implementations
 
@@ -34,13 +31,12 @@ void time_init(TimeData *time)
     time->subtick = 0.0;
 }
 
-
 /* sets timing data */
 void time_setData(TimeData *time)
 {
     // Update timing values
-    time->frame_rate = display_get_fps();        // Retrieve current frames per second
-    time->subtick = core_get_subtick();          // Retrieve subtick of the frame
+    time->frame_rate = display_get_fps(); // Retrieve current frames per second
+    time->subtick = core_get_subtick();   // Retrieve subtick of the frame
     time->frame_counter++;
 }
 

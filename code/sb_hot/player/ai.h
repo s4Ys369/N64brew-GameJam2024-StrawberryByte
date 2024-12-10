@@ -1,7 +1,8 @@
 #ifndef AI_H
 #define AI_H
 
-typedef struct {
+typedef struct
+{
     float jump_threshold;
     float safe_height;
     uint8_t difficulty;
@@ -20,31 +21,30 @@ void ai_init(AI *ai, uint8_t difficulty)
     ai->reaction_delay = 0;
 
     // Set other fields based on difficulty
-    switch(difficulty)
+    switch (difficulty)
     {
-        case DIFF_EASY:
-            ai->jump_threshold = 400.0f;
-            ai->safe_height = 245.0f;
-            ai->difficulty = DIFF_MEDIUM;
-            ai->error_margin = 12;
-            ai->max_reaction_delay = 6;
-            break;
-        case DIFF_MEDIUM:
-            ai->jump_threshold = 385.0f;
-            ai->safe_height = 240.0f;
-            ai->difficulty = DIFF_MEDIUM;
-            ai->error_margin = 10;
-            ai->max_reaction_delay = 4;
-            break;
-        case DIFF_HARD:
-            ai->jump_threshold = 375.0f;
-            ai->safe_height = 235.0f;
-            ai->difficulty = DIFF_MEDIUM;
-            ai->error_margin = 8;
-            ai->max_reaction_delay = 2;
-            break;
+    case DIFF_EASY:
+        ai->jump_threshold = 400.0f;
+        ai->safe_height = 245.0f;
+        ai->difficulty = DIFF_MEDIUM;
+        ai->error_margin = 12;
+        ai->max_reaction_delay = 6;
+        break;
+    case DIFF_MEDIUM:
+        ai->jump_threshold = 385.0f;
+        ai->safe_height = 240.0f;
+        ai->difficulty = DIFF_MEDIUM;
+        ai->error_margin = 10;
+        ai->max_reaction_delay = 4;
+        break;
+    case DIFF_HARD:
+        ai->jump_threshold = 375.0f;
+        ai->safe_height = 235.0f;
+        ai->difficulty = DIFF_MEDIUM;
+        ai->error_margin = 8;
+        ai->max_reaction_delay = 2;
+        break;
     }
-
 }
 
 // Helper function to rotate input by camera angle
@@ -61,9 +61,10 @@ void ai_updateCam(ControllerData *control, float camera_angle)
 }
 
 // Function to find the nearest platform at a safe height
-Platform* find_nearest_safe_platform(AI *ai, Actor *actor, Platform* platforms) {
-    Platform* nearest_platform = NULL;
-    float min_distance_sq = FLT_MAX; // Store squared distance to avoid square root computation
+Platform *find_nearest_safe_platform(AI *ai, Actor *actor, Platform *platforms)
+{
+    Platform *nearest_platform = NULL;
+    float min_distance_sq = FLT_MAX;                           // Store squared distance to avoid square root computation
     const float current_platform_threshold_sq = 0.02f * 0.02f; // Squared threshold to ignore the current platform
 
     // Calculate grid cell for the actor's current position
@@ -71,20 +72,25 @@ Platform* find_nearest_safe_platform(AI *ai, Actor *actor, Platform* platforms) 
     int yCell = (int)fm_floorf((actor->body.position.y + 700) / GRID_SIZE);
 
     // Iterate through platforms in the same and adjacent grid cells
-    for (int dx = -1; dx <= 1; dx++) {
-        for (int dy = -1; dy <= 1; dy++) {
+    for (int dx = -1; dx <= 1; dx++)
+    {
+        for (int dy = -1; dy <= 1; dy++)
+        {
             int nx = xCell + dx;
             int ny = yCell + dy;
 
             // Check if the cell is within bounds
-            if (nx >= 0 && nx < MAX_GRID_CELLS && ny >= 0 && ny < MAX_GRID_CELLS) {
-                PlatformGridCell* cell = &platformGrid[nx][ny];
-                for (size_t i = 0; i < cell->count; i++) {
+            if (nx >= 0 && nx < MAX_GRID_CELLS && ny >= 0 && ny < MAX_GRID_CELLS)
+            {
+                PlatformGridCell *cell = &platformGrid[nx][ny];
+                for (size_t i = 0; i < cell->count; i++)
+                {
                     size_t platformIndex = cell->platformIndices[i];
-                    Platform* platform = &platforms[platformIndex];
+                    Platform *platform = &platforms[platformIndex];
 
                     // Skip platforms not at a safe height
-                    if (platform->position.z <= ai->safe_height) continue;
+                    if (platform->position.z <= ai->safe_height)
+                        continue;
 
                     // Calculate squared distance using fast math vector3
                     fm_vec3_t actorPos = Vector3_to_fast(actor->body.position);
@@ -92,10 +98,12 @@ Platform* find_nearest_safe_platform(AI *ai, Actor *actor, Platform* platforms) 
                     float distance_sq = fm_vec3_distance2(&platformPos, &actorPos);
 
                     // Ignore the current platform the AI is standing on
-                    if (distance_sq < current_platform_threshold_sq) continue;
+                    if (distance_sq < current_platform_threshold_sq)
+                        continue;
 
                     // Check if this platform is the nearest valid one
-                    if (distance_sq < min_distance_sq) {
+                    if (distance_sq < min_distance_sq)
+                    {
                         min_distance_sq = distance_sq;
                         nearest_platform = platform;
                     }
@@ -114,14 +122,16 @@ void ai_generateControlData(AI *ai, ControllerData *control, Actor *actor, Platf
     memset(control, 0, sizeof(ControllerData));
 
     // Set difficulty-based reaction delay
-    if (ai->reaction_delay < ai->max_reaction_delay) {
+    if (ai->reaction_delay < ai->max_reaction_delay)
+    {
         ai->reaction_delay++;
-        return;  // Skip processing this frame to simulate slower reaction
+        return; // Skip processing this frame to simulate slower reaction
     }
 
     // Find the nearest safe platform
-    Platform* target_platform = find_nearest_safe_platform(ai, actor, platforms);
-    if (target_platform == NULL) return; // No valid platform found, do nothing
+    Platform *target_platform = find_nearest_safe_platform(ai, actor, platforms);
+    if (target_platform == NULL)
+        return; // No valid platform found, do nothing
 
     // Calculate direction towards the target platform
     fm_vec3_t direction_to_target = {{
@@ -148,8 +158,6 @@ void ai_generateControlData(AI *ai, ControllerData *control, Actor *actor, Platf
 
     // Adjust for camera angle if needed
     ai_updateCam(control, camera_angle);
-
 }
-
 
 #endif // AI_H

@@ -3,26 +3,25 @@
 
 // structures
 
-typedef struct {
+typedef struct
+{
     Vector3 size;
     Vector3 center;
     Vector3 rotation;
 } Box;
 
-
 // function prototypes
 
-AABB box_getLocalAABB(const Box* box);
+AABB box_getLocalAABB(const Box *box);
 
-bool box_contactSphere(const Box* box, const Sphere* sphere);
-void box_contactSphereSetData(ContactData* contact, const Box* box, const Sphere* sphere);
+bool box_contactSphere(const Box *box, const Sphere *sphere);
+void box_contactSphereSetData(ContactData *contact, const Box *box, const Sphere *sphere);
 
 void box_init(Box *box, Vector3 size, Vector3 center, Vector3 rotation, float scalar);
 
-
 // function implementations
 
-AABB box_getLocalAABB(const Box* box) 
+AABB box_getLocalAABB(const Box *box)
 {
     AABB aabb;
     aabb.minCoordinates = vector3_returnScaled(&box->size, -0.5f);
@@ -30,7 +29,7 @@ AABB box_getLocalAABB(const Box* box)
     return aabb;
 }
 
-bool box_contactSphere(const Box* box, const Sphere* sphere)
+bool box_contactSphere(const Box *box, const Sphere *sphere)
 {
     // Transform the center of the sphere to the local space of the box
     Vector3 local_sphere_center = sphere->center;
@@ -39,15 +38,15 @@ bool box_contactSphere(const Box* box, const Sphere* sphere)
     // Get the local AABB of the box and local sphere
     AABB local_aabb = box_getLocalAABB(box);
     const Sphere local_sphere = {
-        center: local_sphere_center,
-        radius: sphere->radius
+        center : local_sphere_center,
+        radius : sphere->radius
     };
 
     // Check for collision in the local space
     return aabb_contactSphere(&local_aabb, &local_sphere);
 }
 
-void box_contactSphereSetData(ContactData* contact, const Box* box, const Sphere* sphere)
+void box_contactSphereSetData(ContactData *contact, const Box *box, const Sphere *sphere)
 {
     // Transform the center of the sphere to the local space of the box
     Vector3 local_sphere_center = sphere->center;
@@ -75,5 +74,4 @@ void box_init(Box *box, Vector3 size, Vector3 center, Vector3 rotation, float sc
     box->rotation = rotation;
 }
 
-
-#endif 
+#endif

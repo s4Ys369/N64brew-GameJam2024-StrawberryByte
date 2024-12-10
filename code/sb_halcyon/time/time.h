@@ -1,7 +1,6 @@
 #ifndef TIME_H
 #define TIME_H
 
-
 // structures
 
 typedef struct
@@ -15,12 +14,10 @@ typedef struct
 
 } TimeData;
 
-
 // functions prototypes
 
 void time_init(TimeData *time);
 void time_setData(TimeData *time, bool paused);
-
 
 // functions implementations
 
@@ -36,12 +33,12 @@ void time_init(TimeData *time)
     time->fixed_time_s = 0.04f;
 }
 
-
 /* sets timing data */
 void time_setData(TimeData *time, bool paused)
 {
     // Update timing values
-    if (!paused) time->frame_counter++;
+    if (!paused)
+        time->frame_counter++;
     time->frame_rate = display_get_fps();
     time->subtick = (core_get_subtick() == 0) ? 1 : core_get_subtick();
     time->frame_time_s = display_get_delta_time();
