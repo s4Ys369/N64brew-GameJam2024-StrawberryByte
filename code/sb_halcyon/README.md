@@ -7,7 +7,7 @@
 ## Halcyon Hexagons
 * Programming: zoncabe, s4ys
 * Models: zoncabe, mewde, s4ys
-* Music: 'Bottled Bubbles' by Roald Strauss [link](https://indiegamemusic.com/viewtrack.php?id=5852)
+* Original Composition by Kaelin Stemmler
 
 ## holes
 * Programming: s4ys

@@ -2,7 +2,7 @@
 #define GAME_STATES_H
 
 // Comment out to disable RSPQ Profiling
-//#define PROFILING
+// #define PROFILING
 
 #ifdef PROFILING
 #include "rspq_profile.h"
@@ -11,18 +11,18 @@ static rspq_profile_data_t profile_data;
 
 // function prototypes
 
-void gameState_setIntro(Game* game, Player* player, Scenery* scenery);
-void gameState_setMainMenu(Game* game, Player* player, Actor* actor, Scenery* scenery);
-void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery);
+void gameState_setIntro(Game *game, Player *player, Scenery *scenery);
+void gameState_setMainMenu(Game *game, Player *player, Actor *actor, Scenery *scenery);
+void gameState_setCS(Game *game, Player *player, Actor *actor, Scenery *scenery);
 
-void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Scenery* scenery, ActorCollider* actor_collider, ActorContactData* actor_contact);
-void gameState_setPause(Game* game, Player* player, Actor* actor, Scenery* scenery);
+void gameState_setGameplay(Game *game, Player *player, AI *ai, Actor *actor, Scenery *scenery, ActorCollider *actor_collider, ActorContactData *actor_contact);
+void gameState_setPause(Game *game, Player *player, Actor *actor, Scenery *scenery);
 
 void gameState_setGameOver();
 
-void game_play(Game* game, Player* player, AI* ai, Actor* actor, Scenery* scenery, ActorCollider* actor_collider, ActorContactData* actor_contact);
+void game_play(Game *game, Player *player, AI *ai, Actor *actor, Scenery *scenery, ActorCollider *actor_collider, ActorContactData *actor_contact);
 
-void gameState_background(Game* game, int color)
+void gameState_background(Game *game, int color)
 {
 	static float s0 = 0.0f, s1 = 16.0f;
 	float t0 = 0.0f, t1 = 16.0f;
@@ -31,13 +31,15 @@ void gameState_background(Game* game, int color)
 
 	// Scroll horizontally
 	float scrollSpeed = display_get_refresh_rate() * 0.1f;
-	float textureWidth = 32.0f; 
+	float textureWidth = 32.0f;
 
 	s0 += (game->timing.fixed_time_s * scrollSpeed);
 	s1 += (game->timing.fixed_time_s * scrollSpeed);
 
-	if(s0 > textureWidth) s0 = 0;
-	if(s1 > textureWidth) s1 = 0;
+	if (s0 > textureWidth)
+		s0 = 0;
+	if (s1 > textureWidth)
+		s1 = 0;
 
 	// Stretch/Squash vertically
 	float counter = 0;
@@ -51,45 +53,46 @@ void gameState_background(Game* game, int color)
 
 	ui_spriteDrawPanel(TILE2, sprite_clouds, color, x0, y0, x1, y1, s0, t0, s1, t1); // @TODO: make sprite a argument
 
-	if(counter > 255.0f) counter = 0;
-
+	if (counter > 255.0f)
+		counter = 0;
 }
 
 // new camera code ////
 
-void camera_getMinigamePosition(Camera* camera, Actor* actor, Player* player, Vector3 camera_distance)
+void camera_getMinigamePosition(Camera *camera, Actor *actor, Player *player, Vector3 camera_distance)
 {
-    Vector3 camera_target;
+	Vector3 camera_target;
 
-    uint8_t average_count = 0;
+	uint8_t average_count = 0;
 
-    vector3_init(&camera->position);
-    vector3_init(&camera_target);
+	vector3_init(&camera->position);
+	vector3_init(&camera_target);
 
-    for (uint8_t i = 0; i < ACTOR_COUNT; i++)
-    {
-        if (!player[i].died && player[i].isHuman) {
+	for (uint8_t i = 0; i < ACTOR_COUNT; i++)
+	{
+		if (!player[i].died && player[i].isHuman)
+		{
 
-            vector3_add(&camera_target, &actor[player[i].actor_id].body.position);
-            average_count++;
-        }
-    }
+			vector3_add(&camera_target, &actor[player[i].actor_id].body.position);
+			average_count++;
+		}
+	}
 
-    if (average_count > 0) vector3_divideByNumber(&camera_target, average_count);
-    camera_target.z = 200;
+	if (average_count > 0)
+		vector3_divideByNumber(&camera_target, average_count);
+	camera_target.z = 200;
 
-    if (camera_target.x != camera->target.x || camera_target.y != camera->target.y)
-    camera->target = vector3_lerp(&camera->target, &camera_target, 0.2f);
-    
-    camera->position = camera->target;
-    
-    vector3_add(&camera->position, &camera_distance);
+	if (camera_target.x != camera->target.x || camera_target.y != camera->target.y)
+		camera->target = vector3_lerp(&camera->target, &camera_target, 0.2f);
+
+	camera->position = camera->target;
+
+	vector3_add(&camera->position, &camera_distance);
 }
 
 //////////////////////
 
-
-void gameState_setIntro(Game* game, Player* player, Scenery* scenery)
+void gameState_setIntro(Game *game, Player *player, Scenery *scenery)
 {
 
 	for (size_t j = 0; j < PLATFORM_COUNT; j++)
@@ -100,7 +103,7 @@ void gameState_setIntro(Game* game, Player* player, Scenery* scenery)
 	move_cloud(scenery);
 
 	// ======== Draw ======== //
-	
+
 	screen_clearDisplay(&game->screen);
 	screen_clearT3dViewport(&game->screen);
 	screen_applyColor_Depth(&game->screen, RGBA32(154, 181, 198, 0xFF), false);
@@ -116,7 +119,7 @@ void gameState_setIntro(Game* game, Player* player, Scenery* scenery)
 
 	scenery_draw(scenery);
 
-	//light_setAmbient(&game->scene.light, 0xFF);
+	// light_setAmbient(&game->scene.light, 0xFF);
 	platform_drawBatch();
 	light_resetAmbient(&game->scene.light);
 
@@ -126,23 +129,23 @@ void gameState_setIntro(Game* game, Player* player, Scenery* scenery)
 
 	ui_intro(&player[0].control);
 
-	if(player[0].control.held.r)
+	if (player[0].control.held.r)
 	{
 		ui_fps(game->timing.frame_rate, 20.0f, 20.0f);
-		if(core_get_playercount() == 1) ui_input_display(&player[0].control);
+		if (core_get_playercount() == 1)
+			ui_input_display(&player[0].control);
 	}
 
 	rdpq_detach_show();
 	sound_update();
 }
 
-
-void gameState_setMainMenu(Game* game, Player* player, Actor* actor, Scenery* scenery)
+void gameState_setMainMenu(Game *game, Player *player, Actor *actor, Scenery *scenery)
 {
 	move_cloud(scenery);
 
 	// ======== Draw ======== //
-	
+
 	screen_clearDisplay(&game->screen);
 	screen_clearT3dViewport(&game->screen);
 	screen_applyColor_Depth(&game->screen, RGBA32(154, 181, 198, 0xFF), false);
@@ -153,13 +156,13 @@ void gameState_setMainMenu(Game* game, Player* player, Actor* actor, Scenery* sc
 
 	light_set(&game->scene.light);
 	// Instead drawing a dark transparent texture over the scene, just change the light direction
-	game->scene.light.direction1 = (T3DVec3){{0,-1, 0}};
+	game->scene.light.direction1 = (T3DVec3){{0, -1, 0}};
 
 	t3d_matrix_push_pos(1);
 
 	scenery_draw(scenery);
 
-	//light_setAmbient(&game->scene.light, 0xFF);
+	// light_setAmbient(&game->scene.light, 0xFF);
 	platform_drawBatch();
 	light_resetAmbient(&game->scene.light);
 
@@ -167,23 +170,26 @@ void gameState_setMainMenu(Game* game, Player* player, Actor* actor, Scenery* sc
 
 	game->syncPoint = rspq_syncpoint_new();
 
-	if(core_get_playercount() == 4)
+	if (core_get_playercount() == 4)
 	{
-		if(player[0].control.pressed.b)
+		if (player[0].control.pressed.b)
 		{
-			if(game->diff <= 1)
+			if (game->diff <= 1)
 			{
 				game->diff++;
-			} else {
+			}
+			else
+			{
 				game->diff = 0;
 			}
 		}
 	}
 	ui_main_menu(&player[0].control, game->diff);
-	if(player[0].control.held.r)
+	if (player[0].control.held.r)
 	{
 		ui_fps(game->timing.frame_rate, 20.0f, 20.0f);
-		if(core_get_playercount() == 1) ui_input_display(&player[0].control);
+		if (core_get_playercount() == 1)
+			ui_input_display(&player[0].control);
 	}
 
 	rdpq_detach_show();
@@ -191,17 +197,17 @@ void gameState_setMainMenu(Game* game, Player* player, Actor* actor, Scenery* sc
 
 #ifdef PROFILING
 	rspq_profile_next_frame();
-	if(game->timing.frame_counter > 29)
+	if (game->timing.frame_counter > 29)
 	{
 		rspq_profile_dump();
 		rspq_profile_reset();
 		game->timing.frame_counter = 0;
 	}
-    rspq_profile_get_data(&profile_data);
+	rspq_profile_get_data(&profile_data);
 #endif // PROFILING
 }
 
-void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery)
+void gameState_setCS(Game *game, Player *player, Actor *actor, Scenery *scenery)
 {
 
 	static uint8_t activePlayer = 0;
@@ -209,14 +215,19 @@ void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery)
 	static uint8_t selectedCharacter[ACTOR_COUNT] = {0};
 	static bool actorSelected[ACTOR_COUNT] = {false};
 
-	if(activePlayer >= 4){game->state = GAMEPLAY;return;}
+	if (activePlayer >= 4)
+	{
+		game->state = GAMEPLAY;
+		return;
+	}
 
 	controllerData_8way(&player[activePlayer].control);
 
 	if (player[activePlayer].control.pressed.d_right)
 	{
 		uint8_t initialSelection = selectedCharacter[activePlayer];
-		do {
+		do
+		{
 			selectedCharacter[activePlayer] = (selectedCharacter[activePlayer] + 1) % ACTOR_COUNT;
 		} while (actorSelected[selectedCharacter[activePlayer]] && selectedCharacter[activePlayer] != initialSelection);
 	}
@@ -224,7 +235,8 @@ void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery)
 	if (player[activePlayer].control.pressed.d_left)
 	{
 		uint8_t initialSelection = selectedCharacter[activePlayer];
-		do {
+		do
+		{
 			selectedCharacter[activePlayer] = (selectedCharacter[activePlayer] - 1 + ACTOR_COUNT) % ACTOR_COUNT;
 		} while (actorSelected[selectedCharacter[activePlayer]] && selectedCharacter[activePlayer] != initialSelection);
 	}
@@ -233,7 +245,7 @@ void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery)
 	{
 		// @TODO: More of a bandaid than a fix
 		// Bugfix: Ensure selected actor is next available one
-		if(!actorSelected[selectedCharacter[activePlayer]])
+		if (!actorSelected[selectedCharacter[activePlayer]])
 		{
 			uint8_t selectedActorId = selectedCharacter[activePlayer];
 			player[activePlayer].actor_id = selectedActorId;
@@ -244,9 +256,11 @@ void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery)
 			actor[selectedActorId].body.rotation.z = actor[selectedActorId].body.rotation.z + 180.0f;
 
 			activePlayer++;
-		} else {
+		}
+		else
+		{
 			// Audio feedback for selecting unavailable actor
-			sound_wavPlay(SFX_JUMP, false); 
+			sound_wavPlay(SFX_JUMP, false);
 		}
 
 		// Automatically assign actors to AI players
@@ -268,25 +282,30 @@ void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery)
 			activePlayer = 4; // Lock selection
 		}
 
-		if(activePlayer >= 4){game->state = GAMEPLAY;return;}
+		if (activePlayer >= 4)
+		{
+			game->state = GAMEPLAY;
+			return;
+		}
 	}
 
 	for (size_t i = 0; i < ACTOR_COUNT; i++)
 	{
 		actor_update(&actor[i], NULL, &game->timing, game->scene.camera.angle_around_barycenter, game->scene.camera.offset_angle, &game->syncPoint);
-		
+
 		// Reset non-selected actors
 		if (!actorSelected[i])
-		{ 
-        	actor[i].body.position = actor[i].home;
-        	actor[i].body.rotation.z = 0;
-    	}
+		{
+			actor[i].body.position = actor[i].home;
+			actor[i].body.rotation.z = 0;
+		}
 
 		actor_updateMat(&actor[i]);
 	}
 
 	// Sync RSPQ once, and then update each actors' skeleton
-	if(game->syncPoint)rspq_syncpoint_wait(game->syncPoint);
+	if (game->syncPoint)
+		rspq_syncpoint_wait(game->syncPoint);
 	for (size_t i = 0; i < ACTOR_COUNT; i++)
 	{
 		t3d_skeleton_update(&actor[i].armature.main);
@@ -295,7 +314,7 @@ void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery)
 	move_cloud(scenery);
 
 	// ======== Draw ======== //
-	
+
 	screen_clearDisplay(&game->screen);
 	screen_clearT3dViewport(&game->screen);
 	screen_applyColor_Depth(&game->screen, RGBA32(154, 181, 198, 0xFF), false);
@@ -307,16 +326,16 @@ void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery)
 	light_set(&game->scene.light);
 
 	// Change light direction to illuminate players
-	game->scene.light.direction1 = (T3DVec3){{0,-1,0}};
-	//game->scene.light.directional_color1[0] = 200;
-	//game->scene.light.directional_color1[1] = 200;
-	//game->scene.light.directional_color1[2] = 200;
+	game->scene.light.direction1 = (T3DVec3){{0, -1, 0}};
+	// game->scene.light.directional_color1[0] = 200;
+	// game->scene.light.directional_color1[1] = 200;
+	// game->scene.light.directional_color1[2] = 200;
 
 	t3d_matrix_push_pos(1);
 
 	scenery_draw(scenery);
 
-	//light_setAmbient(&game->scene.light, 0xBF);
+	// light_setAmbient(&game->scene.light, 0xBF);
 	platform_drawBatch();
 	light_resetAmbient(&game->scene.light);
 
@@ -326,7 +345,7 @@ void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery)
 
 	game->syncPoint = rspq_syncpoint_new();
 
-	if(activePlayer < MAXPLAYERS)
+	if (activePlayer < MAXPLAYERS)
 	{
 		player[activePlayer].position.x = (actor[selectedCharacter[activePlayer]].body.position.x * 3.6f) - 30.0f;
 		player[activePlayer].position.z = 125.0f;
@@ -335,18 +354,18 @@ void gameState_setCS(Game* game, Player* player, Actor* actor, Scenery* scenery)
 
 	ui_character_select(&player[activePlayer].control, selectedCharacter[activePlayer]);
 
-	if(player[0].control.held.r)
+	if (player[0].control.held.r)
 	{
 		ui_fps(game->timing.frame_rate, 20.0f, 20.0f);
-		if(core_get_playercount() == 1) ui_input_display(&player[0].control);
+		if (core_get_playercount() == 1)
+			ui_input_display(&player[0].control);
 	}
 
 	rdpq_detach_show();
 	sound_update();
 }
 
-
-void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Scenery* scenery, ActorCollider* actor_collider, ActorContactData* actor_contact)
+void gameState_setGameplay(Game *game, Player *player, AI *ai, Actor *actor, Scenery *scenery, ActorCollider *actor_collider, ActorContactData *actor_contact)
 {
 
 	if (!game->actorSet)
@@ -356,7 +375,7 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 		actor[1].body.position = hexagons[6].position;
 		actor[2].body.position = hexagons[12].position;
 		actor[3].body.position = hexagons[15].position;
-		for (size_t i = 0; i < ACTOR_COUNT; i++) 
+		for (size_t i = 0; i < ACTOR_COUNT; i++)
 		{
 			actor[i].body.position.z = actor[i].body.position.z + 150.0f;
 			actor[i].home = actor[i].body.position;
@@ -365,16 +384,18 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 		game->actorSet ^= 1;
 	}
 
-// ======== Countdown ======== //
-    if (game->countdownTimer > 0)
-    {
-		if(game->countdownTimer % 44 == 0) sound_wavPlay(SFX_COUNTDOWN, false);
+	// ======== Countdown ======== //
+	if (game->countdownTimer > 0)
+	{
+		if (game->countdownTimer % 44 == 0)
+			sound_wavPlay(SFX_COUNTDOWN, false);
 
-		if(game->countdownTimer == 3) sound_wavPlay(SFX_START, false);
+		if (game->countdownTimer == 3)
+			sound_wavPlay(SFX_START, false);
 
 		move_cloud(scenery);
 
-        // ======== Draw ======== //
+		// ======== Draw ======== //
 		screen_clearDisplay(&game->screen);
 		screen_clearT3dViewport(&game->screen);
 		screen_applyColor_Depth(&game->screen, RGBA32(154, 181, 198, 0xFF), false);
@@ -385,10 +406,10 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 
 		light_set(&game->scene.light);
 
-		game->scene.light.direction1 = (T3DVec3){{0,-1,0}};
-		//game->scene.light.directional_color1[0] = 200;
-		//game->scene.light.directional_color1[1] = 100;
-		//game->scene.light.directional_color1[2] = 50;
+		game->scene.light.direction1 = (T3DVec3){{0, -1, 0}};
+		// game->scene.light.directional_color1[0] = 200;
+		// game->scene.light.directional_color1[1] = 100;
+		// game->scene.light.directional_color1[2] = 50;
 
 		t3d_matrix_push_pos(1);
 
@@ -413,10 +434,9 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 		rdpq_detach_show();
 		sound_update();
 		return; // Exit early until countdown finishes
-    }
+	}
 
-
-// ======== Gameplay ======== //
+	// ======== Gameplay ======== //
 
 	float endTimerFactor = 22.0f;
 
@@ -426,30 +446,34 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 #ifndef AI_BATTLE
 	for (size_t i = 0; i < AI_COUNT; i++)
 	{
-		if(player[i+PLAYER_COUNT].died) continue;
-		if(game->winnerSet) continue;
-		ai_generateControlData(&ai[i], &player[i+PLAYER_COUNT].control, &actor[player[i+PLAYER_COUNT].actor_id], hexagons, game->scene.camera.offset_angle);
+		if (player[i + PLAYER_COUNT].died)
+			continue;
+		if (game->winnerSet)
+			continue;
+		ai_generateControlData(&ai[i], &player[i + PLAYER_COUNT].control, &actor[player[i + PLAYER_COUNT].actor_id], hexagons, game->scene.camera.offset_angle);
 	}
 #else
 	for (size_t i = 0; i < AI_COUNT; i++)
 	{
-		if(player[i].died) continue;
-		if(game->winnerSet) continue;
+		if (player[i].died)
+			continue;
+		if (game->winnerSet)
+			continue;
 		ai_generateControlData(&ai[i], &player[i].control, &actor[player[i].actor_id], hexagons, game->scene.camera.offset_angle);
 	}
 #endif
 
 	// Platforms
-	if(game->timing.frame_counter > display_get_refresh_rate()*10)
+	if (game->timing.frame_counter > display_get_refresh_rate() * 10)
 	{
 		platform_dropGroup(hexagons, 2, game->timing.fixed_time_s);
 	}
-	if(game->timing.frame_counter > display_get_refresh_rate()*20)
+	if (game->timing.frame_counter > display_get_refresh_rate() * 20)
 	{
 		platform_dropGroup(hexagons, 1, game->timing.fixed_time_s);
 	}
 
-	if(!game->winnerSet)
+	if (!game->winnerSet)
 	{
 		for (size_t j = 0; j < PLATFORM_COUNT; j++)
 		{
@@ -457,18 +481,16 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 		}
 	}
 
-
-
 	// Actors
 	uint8_t loserCount = 0;
 	uint8_t aliveCount = 0;
-    uint8_t lastAlivePlayer = 0;
+	uint8_t lastAlivePlayer = 0;
 
 	for (size_t i = 0; i < ACTOR_COUNT; i++)
 	{
 		// Use player[i].actor_id to identify the assigned actor
 		uint8_t actorIndex = player[i].actor_id;
-		Actor* currentActor = &actor[actorIndex];
+		Actor *currentActor = &actor[actorIndex];
 		// Sync player's position with the actor
 		player[i].position = currentActor->body.position;
 		if (currentActor->state != DEATH)
@@ -485,18 +507,23 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 				// Update matrix
 				actor_updateMat(currentActor);
 			}
-		} else {
+		}
+		else
+		{
 
-			// Bugfix: Center dead actor's position to not break camera 
-			currentActor->body.position = (Vector3){0,0,250};
+			// Bugfix: Center dead actor's position to not break camera
+			currentActor->body.position = (Vector3){0, 0, 250};
 			static int8_t timer[MAXPLAYERS] = {0};
-			if(player[i].isHuman)
+			if (player[i].isHuman)
 			{
 				if (!player[i].control.has_rumbled)
 				{
 					controllerData_rumbleFrames(&player[i].control, i, 5);
-					if (++timer[i] > 25) player[i].control.has_rumbled = true;
-				} else {
+					if (++timer[i] > 25)
+						player[i].control.has_rumbled = true;
+				}
+				else
+				{
 					controllerData_rumbleStop(&player[i].control, i);
 				}
 			}
@@ -505,24 +532,28 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 		}
 	}
 
-	for (int i = 0; i < MAXPLAYERS; i++) {
+	for (int i = 0; i < MAXPLAYERS; i++)
+	{
 
-        // Get the player's actor colorID
-        int playerColorID = actor[player[i].actor_id].colorID;
+		// Get the player's actor colorID
+		int playerColorID = actor[player[i].actor_id].colorID;
 
-        // Count platforms with the same colorID
-        for (int j = 0; j < PLATFORM_COUNT; j++) {
-            if (hexagons[j].colorID == playerColorID) {
-                if(!game->winnerSet && hexagons[j].platformTimer == 120 - (core_get_aidifficulty()*10)) player[i].score++;
-            }
-        }
-    }
+		// Count platforms with the same colorID
+		for (int j = 0; j < PLATFORM_COUNT; j++)
+		{
+			if (hexagons[j].colorID == playerColorID)
+			{
+				if (!game->winnerSet && hexagons[j].platformTimer == 120 - (core_get_aidifficulty() * 10))
+					player[i].score++;
+			}
+		}
+	}
 
 	// Check if we have a winner (only one alive player left) OR if there's only one platform left
-	if ((aliveCount <= 1 || game->timing.frame_counter > display_get_refresh_rate()*endTimerFactor) && !game->winnerSet)
+	if ((aliveCount <= 1 || game->timing.frame_counter > display_get_refresh_rate() * endTimerFactor) && !game->winnerSet)
 	{
 		// Give last player alive bonus points
-		if(aliveCount == 1) 
+		if (aliveCount == 1)
 		{
 			player[lastAlivePlayer].score++;
 			wait_ms(1); // Loop is too fast, this doesn't count for the winner
@@ -532,15 +563,15 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 			player[0].score,
 			player[1].score,
 			player[2].score,
-			player[3].score
-		};
+			player[3].score};
 
 		// Find the highest score
 		int highestScore = scores[0];
 
 		for (int i = 1; i < 4; i++)
 		{
-			if (scores[i] > highestScore) highestScore = scores[i];
+			if (scores[i] > highestScore)
+				highestScore = scores[i];
 		}
 
 		// Identify all players with the highest score
@@ -568,7 +599,9 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 				}
 			}
 			game->winnerID = 5; // Optional: Use -1 to represent a tie scenario
-		} else {
+		}
+		else
+		{
 			// Handle single winner
 			for (int i = 0; i < 4; i++)
 			{
@@ -583,16 +616,16 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 		game->winnerSet = true;
 	}
 
-
 	// Sync RSPQ once, and then update each actors' skeleton
-	if(game->syncPoint)rspq_syncpoint_wait(game->syncPoint);
+	if (game->syncPoint)
+		rspq_syncpoint_wait(game->syncPoint);
 	for (size_t i = 0; i < ACTOR_COUNT; i++)
 	{
 		t3d_skeleton_update(&actor[i].armature.main);
 	}
 
 	// ======== Draw ======== //
-	
+
 	screen_clearDisplay(&game->screen);
 	screen_clearT3dViewport(&game->screen);
 	screen_applyColor_Depth(&game->screen, RGBA32(154, 181, 198, 0xFF), false);
@@ -604,7 +637,7 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 	light_set(&game->scene.light);
 
 	// Reset light direction to default in case players have paused
-	game->scene.light.direction1 = (T3DVec3){{0,-1,0}};
+	game->scene.light.direction1 = (T3DVec3){{0, -1, 0}};
 
 	t3d_matrix_push_pos(1);
 
@@ -617,7 +650,7 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 	// Don't bother drawing shadows for the AI
 	for (size_t s = 0; s < PLAYER_COUNT; s++)
 	{
-		if(actor[player[s].actor_id].state == FALLING || actor[player[s].actor_id].state == JUMP) 
+		if (actor[player[s].actor_id].state == FALLING || actor[player[s].actor_id].state == JUMP)
 			player_drawShadow(actor[player[s].actor_id].body.position, &game->screen.gameplay_viewport);
 	}
 
@@ -630,12 +663,12 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 	game->syncPoint = rspq_syncpoint_new();
 
 	// TPX
-	ptx_draw(&game->screen.gameplay_viewport,&hexagons[0], &cloudMist);
-	ptx_draw(&game->screen.gameplay_viewport,&hexagons[4], &cloudMist);
+	ptx_draw(&game->screen.gameplay_viewport, &hexagons[0], &cloudMist);
+	ptx_draw(&game->screen.gameplay_viewport, &hexagons[4], &cloudMist);
 
 	for (size_t i = 0; i < ACTOR_COUNT; i++)
 	{
-		if(!game->winnerSet)
+		if (!game->winnerSet)
 		{
 			ui_print_playerNum(&player[i], &game->screen);
 		}
@@ -643,9 +676,9 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 		ui_playerScores(&player[i]);
 	}
 
-	if(loserCount >= 3 || game->timing.frame_counter > display_get_refresh_rate()*endTimerFactor)
+	if (loserCount >= 3 || game->timing.frame_counter > display_get_refresh_rate() * endTimerFactor)
 	{
-		if(game->winnerSet)
+		if (game->winnerSet)
 		{
 			game->winTimer++;
 			sound_xmStop();
@@ -653,25 +686,31 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 			sound_wavClose(SFX_JUMP);
 			sound_wavClose(SFX_STONES);
 			wait_ticks(4);
-			if(game->winTimer == 3) sound_wavPlay(SFX_STOP, false);
-			if(game->winTimer == 60) sound_wavPlay(SFX_WINNER, false);
-			if(game->winTimer < 120)
+			if (game->winTimer == 3)
+				sound_wavPlay(SFX_STOP, false);
+			if (game->winTimer == 60)
+				sound_wavPlay(SFX_WINNER, false);
+			if (game->winTimer < 120)
 			{
-				if(game->winnerID != 5)
+				if (game->winnerID != 5)
 				{
-					ui_print_winner(game->winnerID+1);
-				} else {
+					ui_print_winner(game->winnerID + 1);
+				}
+				else
+				{
 					ui_print_winner(game->winnerID); // TIE condition
 				}
 			}
-			if(game->winTimer >= 118) game->state = GAME_OVER;
+			if (game->winTimer >= 118)
+				game->state = GAME_OVER;
 		}
 	}
 
-	if(player[0].control.held.r)
+	if (player[0].control.held.r)
 	{
 		ui_fps(game->timing.frame_rate, 20.0f, 20.0f);
-		if(core_get_playercount() == 1) ui_input_display(&player[0].control);
+		if (core_get_playercount() == 1)
+			ui_input_display(&player[0].control);
 	}
 
 	rdpq_detach_show();
@@ -679,24 +718,23 @@ void gameState_setGameplay(Game* game, Player* player, AI* ai, Actor* actor, Sce
 
 #ifdef PROFILING
 	rspq_profile_next_frame();
-	if(game->timing.frame_counter > 29)
+	if (game->timing.frame_counter > 29)
 	{
 		rspq_profile_dump();
 		rspq_profile_reset();
 		game->timing.frame_counter = 0;
 	}
-    rspq_profile_get_data(&profile_data);
+	rspq_profile_get_data(&profile_data);
 #endif // PROFILING
 }
 
-
-void gameState_setPause(Game* game, Player* player, Actor* actor, Scenery* scenery)
+void gameState_setPause(Game *game, Player *player, Actor *actor, Scenery *scenery)
 {
 
 	move_cloud(scenery);
 
 	// ======== Draw ======== //
-	
+
 	screen_clearDisplay(&game->screen);
 	screen_clearT3dViewport(&game->screen);
 	screen_applyColor_Depth(&game->screen, ui_color(VIOLET), false);
@@ -708,13 +746,13 @@ void gameState_setPause(Game* game, Player* player, Actor* actor, Scenery* scene
 	light_set(&game->scene.light);
 
 	// Instead drawing a dark transparent texture over the scene, just change the light direction
-	game->scene.light.direction1 = (T3DVec3){{-1,-1,-1}};
+	game->scene.light.direction1 = (T3DVec3){{-1, -1, -1}};
 
 	t3d_matrix_push_pos(1);
 
 	scenery_draw(scenery);
 
-	//light_setAmbient(&game->scene.light, 0xFF);
+	// light_setAmbient(&game->scene.light, 0xFF);
 	platform_drawBatch();
 	light_resetAmbient(&game->scene.light);
 
@@ -724,11 +762,14 @@ void gameState_setPause(Game* game, Player* player, Actor* actor, Scenery* scene
 
 	game->syncPoint = rspq_syncpoint_new();
 
-	if(player[0].control.held.r)
+	if (player[0].control.held.r)
 	{
 		ui_fps(game->timing.frame_rate, 20.0f, 20.0f);
-		if(core_get_playercount() == 1) ui_input_display(&player[0].control);
-	} else {
+		if (core_get_playercount() == 1)
+			ui_input_display(&player[0].control);
+	}
+	else
+	{
 		ui_pause(&player[0].control);
 	}
 
@@ -737,32 +778,33 @@ void gameState_setPause(Game* game, Player* player, Actor* actor, Scenery* scene
 
 #ifdef PROFILING
 	rspq_profile_next_frame();
-	if(game->timing.frame_counter > 29)
+	if (game->timing.frame_counter > 29)
 	{
 		rspq_profile_dump();
 		rspq_profile_reset();
 		game->timing.frame_counter = 0;
 	}
-    rspq_profile_get_data(&profile_data);
+	rspq_profile_get_data(&profile_data);
 #endif // PROFILING
 }
 
-
 void gameState_setGameOver()
 {
-    minigame_end();
+	minigame_end();
 }
 
-void game_play(Game* game, Player* player, AI* ai, Actor* actor, Scenery* scenery, ActorCollider* actor_collider, ActorContactData* actor_contact)
+void game_play(Game *game, Player *player, AI *ai, Actor *actor, Scenery *scenery, ActorCollider *actor_collider, ActorContactData *actor_contact)
 {
-	for(;;)
+	for (;;)
 	{
 
 		// Time
-		if(game->state == PAUSE)
+		if (game->state == PAUSE)
 		{
 			time_setData(&game->timing, true);
-		} else {
+		}
+		else
+		{
 			time_setData(&game->timing, false);
 		}
 
@@ -772,111 +814,131 @@ void game_play(Game* game, Player* player, AI* ai, Actor* actor, Scenery* scener
 
 		// Hold Z to quit on the Pause screen
 		static int resetTimer = 0;
-		if(game->state == PAUSE && player[0].control.held.z)
+		if (game->state == PAUSE && player[0].control.held.z)
 		{
 			resetTimer++;
-			if(resetTimer == 30)
+			if (resetTimer == 30)
 			{
 				sound_wavPlay(SFX_JUMP, false);
-			} else if (resetTimer > 40) {
+			}
+			else if (resetTimer > 40)
+			{
 				game->state = GAME_OVER;
 			}
 		}
 
-		if(game->state == PAUSE && player[0].control.released.z) resetTimer = 0;
+		if (game->state == PAUSE && player[0].control.released.z)
+			resetTimer = 0;
 
-//// CAMERA /////
-		if(player[0].control.pressed.l) game->scene.camera.cam_mode ^= 1;
+		//// CAMERA /////
+		if (player[0].control.pressed.l)
+			game->scene.camera.cam_mode ^= 1;
 
-		Vector3 introStartPos = (Vector3){-1000,-3000,-100};
+		Vector3 introStartPos = (Vector3){-1000, -3000, -100};
 		Vector3 centerHex = hexagons[10].home;
 		Vector3 csPos = (Vector3){0, -1000, 525};
 		Vector3 gamePlayPos = (Vector3){0, -600, 1000};
 
 		game->scene.camera.camTime += game->timing.fixed_time_s;
 
-		if(game->state == INTRO)
+		if (game->state == INTRO)
 		{
 			float t = game->scene.camera.camTime / game->scene.camera.lerpTime;
 			t = clamp(t, 0.0f, 1.0f);
 			Vector3 camPos = vector3_lerp(&introStartPos, &centerHex, t);
 			camera_getMinigamePosition(&game->scene.camera, actor, player, camPos);
-		} else {
+		}
+		else
+		{
 
-			if(game->scene.camera.cam_mode == 0)
+			if (game->scene.camera.cam_mode == 0)
 			{
 				camera_getOrbitalPosition(&game->scene.camera, csPos, game->timing.fixed_time_s);
-			} else {
+			}
+			else
+			{
 				float t = game->scene.camera.camTime / game->scene.camera.lerpTime;
 				t = clamp(t, 0.0f, 1.0f);
 				Vector3 camPos = vector3_lerp(&csPos, &gamePlayPos, t);
-				
-				if(game->state == PAUSE){ 
+
+				if (game->state == PAUSE)
+				{
 					cameraControl_freeCam(&game->scene.camera, &player[0].control, game->timing.fixed_time_s);
-				}else{
+				}
+				else
+				{
 					camera_getMinigamePosition(&game->scene.camera, actor, player, camPos);
 				}
 			}
 		}
 		camera_set(&game->scene.camera, &game->screen);
-//// CAMERA /////
+		//// CAMERA /////
 
 		// Sound: reverb
-		for(int i = 0; i < SFX_WINNER; i++)
-    	{
-			if(i<SFX_COUNTDOWN)
-			{
-				mixer_ch_set_vol_pan(SFX_CHANNEL-i, sound_reverb(0.9f, 0.6f), 0.5f);
-			} else {
-				mixer_ch_set_vol_pan(SFX_CHANNEL-i, sound_reverb(0.5f, 0.8f), 0.5f);
-			}
-    	}
-
-		switch(game->state)
+		for (int i = 0; i < SFX_WINNER; i++)
 		{
-			case INTRO:{
-				gameState_setIntro(game, player, scenery);
-				break;
+			if (i < SFX_COUNTDOWN)
+			{
+				mixer_ch_set_vol_pan(SFX_CHANNEL - i, sound_reverb(0.9f, 0.6f), 0.5f);
 			}
-			case MAIN_MENU:{
-				gameState_setMainMenu(game, player, actor, scenery);
-				break;
-			}
-			case CHARACTER_SELECT:{
-				gameState_setCS(game, player, actor, scenery);
-				break;
-			}
-			case GAMEPLAY:{
-				game->scene.camera.cam_mode = 1;
-				for(uint8_t p = 0; p < game->humanCount; p++)
-				{
-					if(player[p].isHuman && player[p].died && !player[p].deathCounted)
-					{
-						game->deadPool++;
-						player[p].deathCounted = true;
-					}
-
-				}
-				if(game->deadPool == game->humanCount)
-				{
-					display_set_fps_limit(0);
-				} else {
-					display_set_fps_limit((display_get_refresh_rate() / 4) * 2);
-				}
-				gameState_setGameplay(game, player, ai, actor, scenery, actor_collider, actor_contact);
-				break;
-			}
-			case PAUSE:{
-				gameState_setPause(game, player, actor, scenery);
-				break;
-			}
-			case GAME_OVER:{
-				gameState_setGameOver();
-				return;
+			else
+			{
+				mixer_ch_set_vol_pan(SFX_CHANNEL - i, sound_reverb(0.5f, 0.8f), 0.5f);
 			}
 		}
-	}
 
+		switch (game->state)
+		{
+		case INTRO:
+		{
+			gameState_setIntro(game, player, scenery);
+			break;
+		}
+		case MAIN_MENU:
+		{
+			gameState_setMainMenu(game, player, actor, scenery);
+			break;
+		}
+		case CHARACTER_SELECT:
+		{
+			gameState_setCS(game, player, actor, scenery);
+			break;
+		}
+		case GAMEPLAY:
+		{
+			game->scene.camera.cam_mode = 1;
+			sound_xmUpdate(0.4f, true);
+			for (uint8_t p = 0; p < game->humanCount; p++)
+			{
+				if (player[p].isHuman && player[p].died && !player[p].deathCounted)
+				{
+					game->deadPool++;
+					player[p].deathCounted = true;
+				}
+			}
+			if (game->deadPool == game->humanCount)
+			{
+				display_set_fps_limit(0);
+			}
+			else
+			{
+				display_set_fps_limit((display_get_refresh_rate() / 4) * 2);
+			}
+			gameState_setGameplay(game, player, ai, actor, scenery, actor_collider, actor_contact);
+			break;
+		}
+		case PAUSE:
+		{
+			gameState_setPause(game, player, actor, scenery);
+			break;
+		}
+		case GAME_OVER:
+		{
+			gameState_setGameOver();
+			return;
+		}
+		}
+	}
 }
 
 #endif

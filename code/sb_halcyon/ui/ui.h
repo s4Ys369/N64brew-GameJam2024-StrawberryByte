@@ -446,7 +446,7 @@ extern "C"
                             "- Original 'Olli' by FazanaJ\n"
                             "Strawberry Sprite by Sonika Rud\n"
                             "UI Sprites by Kenney\n"
-                            "Music: 'Bottled Bubbles' by Roald Strauss\n"
+                            "Music by Kaelin Stemmler\n"
                             "SFX obtained from Freesound");
         }
     }
