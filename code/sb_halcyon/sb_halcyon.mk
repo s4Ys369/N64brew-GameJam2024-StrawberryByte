@@ -68,7 +68,7 @@ $(ASSETS)/cloud_base.t3dm: T3DM_FLAGS = --base-scale=1
 
 # audioconv flags
 $(ASSETS)/hexagone.wav64: AUDIOCONV_FLAGS = --wav-compress=3
-$(ASSETS)/hexagone.xm64: AUDIOCONV_FLAGS = ''
+$(ASSETS)/sky_high.xm64: AUDIOCONV_FLAGS = ''
 $(ASSETS)/stones-falling.wav64: AUDIOCONV_FLAGS = --wav-compress=3 --wav-mono
 $(ASSETS)/strong_wind_blowing.wav64: AUDIOCONV_FLAGS = --wav-compress=3 --wav-mono
 $(ASSETS)/grunt-01.wav64: AUDIOCONV_FLAGS = --wav-compress=3 --wav-mono

@@ -17,7 +17,7 @@ enum BG_XM
 xm64player_t xmPlayer;
 
 const char *xmFileNames[NUM_XM] = {
-    "rom:/sb_holes/TheMorningAfter.xm64", // Yoink
+    "rom:/sb_holes/TheMorningAfter.xm64", // https://github.com/DragonMinded/libdragon/blob/trunk/examples/audioplayer/assets/TheMorningAfter.xm
 };
 
 // WAV files
@@ -37,7 +37,7 @@ enum SFX_WAV
 wav64_t soundEffects[NUM_WAV];
 
 const char *wavFileNames[NUM_WAV] = {
-    "rom:/sb_holes/building.wav64",
+    "rom:/strawberry_byte/sound/stones-falling.wav64",
     "rom:/sb_holes/car.wav64",
     "rom:/sb_holes/hydrant.wav64",
     "rom:/core/Start.wav64",
@@ -223,6 +223,7 @@ void sound_setChannels(void)
         case SFX_WINNER:
             mixer_ch_set_vol_pan(SFX_CHANNEL - i, 0.4f, 0.5f);
             break;
+        case SFX_BUILDING:
         case SFX_CAR:
             mixer_ch_set_vol_pan(SFX_CHANNEL - i, sound_reverb(0.9f, 0.6f), 0.5f);
             break;
@@ -232,7 +233,6 @@ void sound_setChannels(void)
         case SFX_START:
         case SFX_COUNTDOWN:
         case SFX_STOP:
-        case SFX_BUILDING:
             mixer_ch_set_vol_pan(SFX_CHANNEL - i, sound_reverb(0.4f, 0.9f), 0.5f);
             break;
         }
