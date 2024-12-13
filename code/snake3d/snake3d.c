@@ -67,7 +67,7 @@ typedef struct
   T3DSkeleton skel;
   T3DVec3 moveDir;
   T3DVec3 playerPos;
-  float rotY;
+  float rotY; 
   float currSpeed;
   float animBlend;
   bool isAttack;
