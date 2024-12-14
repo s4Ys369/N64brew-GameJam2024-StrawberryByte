@@ -7,13 +7,15 @@
 #include <t3d/t3dskeleton.h>
 #include <t3d/t3danim.h>
 #include <t3d/t3ddebug.h>
+#include "./snakeplayer.h"
+#include "./dirtblock.h"
+#include "./chest.h"
 
 const MinigameDef minigame_def = {
-    .gamename = "Snake3D",
-    .developername = "HailToDodongo",
-    .description = "This is a porting of one of the Tiny3D examples, to show how to "
-                   "integrate Tiny3D in minigame",
-    .instructions = "Press A to attack. Last snake slithering wins!"
+  .gamename = "Underground Grind",
+  .developername = "raisedwizardry",
+  .description = "Find the treasure by grinding it out underground in a flat 3 x 3 grid",
+  .instructions = "Press A and Z in squence to dig through the blocks. Use the control stick move around"
 };
 
 #define FONT_TEXT           1
@@ -21,9 +23,9 @@ const MinigameDef minigame_def = {
 #define TEXT_COLOR          0x6CBB3CFF
 #define TEXT_OUTLINE        0x30521AFF
 
-#define HITBOX_RADIUS       10.f
+#define HITBOX_RADIUS       19.f
 
-#define ATTACK_OFFSET       10.f
+#define ATTACK_OFFSET       10
 #define ATTACK_RADIUS       5.f
 
 #define ATTACK_TIME_START   0.333f
@@ -33,6 +35,8 @@ const MinigameDef minigame_def = {
 #define GO_DELAY            1.0f
 #define WIN_DELAY           5.0f
 #define WIN_SHOW_DELAY      2.0f
+
+#define TOTAL_BLOCKS        9
 
 #define BILLBOARD_YOFFSET   15.0f
 
@@ -47,42 +51,29 @@ rdpq_font_t *font;
 rdpq_font_t *fontBillboard;
 T3DMat4FP* mapMatFP;
 rspq_block_t *dplMap;
-T3DModel *model;
-T3DModel *modelShadow;
+T3DModel *snakeModel;
+T3DModel *shadowModel;
 T3DModel *modelMap;
+T3DModel *dirtBlockModel;
+T3DModel *chestModel;
 T3DVec3 camPos;
 T3DVec3 camTarget;
 T3DVec3 lightDirVec;
 xm64player_t music;
 
-typedef struct
-{
-  PlyNum plynum;
-  T3DMat4FP* modelMatFP;
-  rspq_block_t *dplSnake;
-  T3DAnim animAttack;
-  T3DAnim animWalk;
-  T3DAnim animIdle;
-  T3DSkeleton skelBlend;
-  T3DSkeleton skel;
-  T3DVec3 moveDir;
-  T3DVec3 playerPos;
-  float rotY;
-  float currSpeed;
-  float animBlend;
-  bool isAttack;
-  bool isAlive;
-  float attackTimer;
-  PlyNum ai_target;
-  int ai_reactionspeed;
-} player_data;
+int chestBlockNumber;
 
-player_data players[MAXPLAYERS];
+SnakePlayer players[MAXPLAYERS];
+
+DirtBlock dirtBlocks[TOTAL_BLOCKS];
+
+Chest chests[1];
 
 float countDownTimer;
 bool isEnding;
 float endTimer;
 PlyNum winner;
+int blockGridSize;
 
 wav64_t sfx_start;
 wav64_t sfx_countdown;
@@ -91,55 +82,15 @@ wav64_t sfx_winner;
 
 rspq_syncpoint_t syncPoint;
 
-void player_init(player_data *player, color_t color, T3DVec3 position, float rotation)
-{
-  player->modelMatFP = malloc_uncached(sizeof(T3DMat4FP));
-
-  player->moveDir = (T3DVec3){{0,0,0}};
-  player->playerPos = position;
-
-  // First instantiate skeletons, they will be used to draw models in a specific pose
-  // And serve as the target for animations to modify
-  player->skel = t3d_skeleton_create(model);
-  player->skelBlend = t3d_skeleton_clone(&player->skel, false); // optimized for blending, has no matrices
-
-  // Now create animation instances (by name), the data in 'model' is fixed,
-  // whereas 'anim' contains all the runtime data.
-  // Note that tiny3d internally keeps no track of animations, it's up to the user to manage and play them.
-  player->animIdle = t3d_anim_create(model, "Snake_Idle");
-  t3d_anim_attach(&player->animIdle, &player->skel); // tells the animation which skeleton to modify
-
-  player->animWalk = t3d_anim_create(model, "Snake_Walk");
-  t3d_anim_attach(&player->animWalk, &player->skelBlend);
-
-  // multiple animations can attach to the same skeleton, this will NOT perform any blending
-  // rather the last animation that updates "wins", this can be useful if multiple animations touch different bones
-  player->animAttack = t3d_anim_create(model, "Snake_Attack");
-  t3d_anim_set_looping(&player->animAttack, false); // don't loop this animation
-  t3d_anim_set_playing(&player->animAttack, false); // start in a paused state
-  t3d_anim_attach(&player->animAttack, &player->skel);
-
-  rspq_block_begin();
-    t3d_matrix_push(player->modelMatFP);
-    rdpq_set_prim_color(color);
-    t3d_model_draw_skinned(model, &player->skel); // as in the last example, draw skinned with the main skeleton
-
-    rdpq_set_prim_color(RGBA32(0, 0, 0, 120));
-    t3d_model_draw(modelShadow);
-    t3d_matrix_pop(1);
-  player->dplSnake = rspq_block_end();
-
-  player->rotY = rotation;
-  player->currSpeed = 0.0f;
-  player->animBlend = 0.0f;
-  player->isAttack = false;
-  player->isAlive = true;
-  player->ai_target = rand()%MAXPLAYERS;
-  player->ai_reactionspeed = (2-core_get_aidifficulty())*5 + rand()%((3-core_get_aidifficulty())*3);
-}
-
 void minigame_init(void)
 {
+  chestBlockNumber = rand() % TOTAL_BLOCKS;
+  
+  int diff = core_get_aidifficulty();
+  if (diff == DIFF_EASY) { blockGridSize = 3;}
+  if (diff == DIFF_MEDIUM) { blockGridSize = 4;}
+  if (diff == DIFF_HARD) { blockGridSize = 5;}
+
   const color_t colors[] = {
     PLAYERCOLOR_1,
     PLAYERCOLOR_2,
@@ -152,7 +103,7 @@ void minigame_init(void)
 
   t3d_init((T3DInitParams){});
 
-  font = rdpq_font_load("rom:/snake3d/m6x11plus.font64");
+  font = rdpq_font_load("rom:/undergroundgrind/m6x11plus.font64");
   rdpq_text_register_font(FONT_TEXT, font);
   rdpq_font_style(font, 0, &(rdpq_fontstyle_t){.color = color_from_packed32(TEXT_COLOR) });
 
@@ -174,11 +125,15 @@ void minigame_init(void)
   lightDirVec = (T3DVec3){{1.0f, 1.0f, 1.0f}};
   t3d_vec3_norm(&lightDirVec);
 
-  modelMap = t3d_model_load("rom:/snake3d/map.t3dm");
-  modelShadow = t3d_model_load("rom:/snake3d/shadow.t3dm");
+  modelMap = t3d_model_load("rom:/undergroundgrind/map.t3dm");
+  shadowModel = t3d_model_load("rom:/undergroundgrind/shadow.t3dm");
 
   // Model Credits: Quaternius (CC0) https://quaternius.com/packs/easyenemy.html
-  model = t3d_model_load("rom:/snake3d/snake.t3dm");
+  snakeModel = t3d_model_load("rom:/undergroundgrind/snake.t3dm");
+  
+  dirtBlockModel = t3d_model_load("rom:/undergroundgrind/one-by-one.t3dm");
+
+  chestModel = t3d_model_load("rom:/undergroundgrind/chest.t3dm");
 
   rspq_block_begin();
     t3d_matrix_push(mapMatFP);
@@ -203,10 +158,33 @@ void minigame_init(void)
 
   for (size_t i = 0; i < MAXPLAYERS; i++)
   {
-    player_init(&players[i], colors[i], start_positions[i], start_rotations[i]);
+    initSnakePlayer(&players[i], colors[i], start_positions[i], start_rotations[i], shadowModel, snakeModel);
     players[i].plynum = i;
   }
 
+  T3DVec3 blockPositions[] = {
+  	(T3DVec3){{41.0f, 0.0f, 41.0f}},
+  	(T3DVec3){{41.0f, 0.0f, 0.0f}},
+	(T3DVec3){{41.0f, 0.0f, -41.0f}},
+	(T3DVec3){{0.0f, 0.0f, 41.0f}},
+	(T3DVec3){{0.0f, 0.0f, 0.0f}},
+	(T3DVec3){{0.0f, 0.0f, -41.0f}},
+	(T3DVec3){{-41.0f, 0.0f, 41.0f}},
+	(T3DVec3){{-41.0f, 0.0f, 0.0f}},
+	(T3DVec3){{-41.0f, 0.0f, -41.0f}}
+  };
+
+  float blockScale = 0.5f;
+  
+  for (size_t i = 0; i < TOTAL_BLOCKS; i++)
+  {
+  	initDirtBlock(&dirtBlocks[i], dirtBlockModel, blockScale, RGBA32(255, 0, 0, 255), blockPositions[i]);
+  }
+
+  initChest(&chests[0], chestModel, 0.4f, RGBA32(255, 0, 0, 255), blockPositions[chestBlockNumber], chestBlockNumber);
+
+  dirtBlocks[chestBlockNumber].isContainingChest = true;
+  
   countDownTimer = COUNTDOWN_DELAY;
 
   syncPoint = 0;
@@ -214,49 +192,48 @@ void minigame_init(void)
   wav64_open(&sfx_countdown, "rom:/core/Countdown.wav64");
   wav64_open(&sfx_stop, "rom:/core/Stop.wav64");
   wav64_open(&sfx_winner, "rom:/core/Winner.wav64");
-  xm64player_open(&music, "rom:/snake3d/bottled_bubbles.xm64");
+  xm64player_open(&music, "rom:/undergroundgrind/bottled_bubbles.xm64");
   xm64player_play(&music, 0);
-  mixer_ch_set_vol(31, 0.5f, 0.5f);
 }
 
-void player_do_damage(player_data *player)
+void player_do_damage(SnakePlayer *player)
 {
-  if (!player->isAlive) {
-    // Prevent edge cases
-    return;
-  }
-
   float s, c;
   fm_sincosf(player->rotY, &s, &c);
-  float attack_pos[] = {
+  float attackPosition[] = {
     player->playerPos.v[0] + s * ATTACK_OFFSET,
     player->playerPos.v[2] + c * ATTACK_OFFSET,
   };
 
-  for (size_t i = 0; i < MAXPLAYERS; i++)
+  for (size_t i = 0; i < TOTAL_BLOCKS; i++)
   {
-    player_data *other_player = &players[i];
-    if (other_player == player || !other_player->isAlive) continue;
+    DirtBlock *block = &dirtBlocks[i];
+    if (block->isDestroyed) continue;
 
-    float pos_diff[] = {
-      other_player->playerPos.v[0] - attack_pos[0],
-      other_player->playerPos.v[2] - attack_pos[1],
+    float positionDifference[] = {
+      block->dirtBlockPos.v[0] - attackPosition[0],
+      block->dirtBlockPos.v[2] - attackPosition[1],
     };
 
-    float distance = sqrtf(pos_diff[0]*pos_diff[0] + pos_diff[1]*pos_diff[1]);
+    float distance = sqrtf(positionDifference[0]*positionDifference[0] + positionDifference[1]*positionDifference[1]);
 
     if (distance < (ATTACK_RADIUS + HITBOX_RADIUS)) {
-      other_player->isAlive = false;
+      block->damage = block->damage + 13 + player->comboBonus;
     }
+
+    if (block->damage > 100) {
+      block->destroyingPlayer = player->plynum;
+	  block->isDestroyed = true;
+	} 
   }
 }
 
-bool player_has_control(player_data *player)
+bool player_has_control(SnakePlayer *player)
 {
-  return player->isAlive && countDownTimer < 0.0f;
+  return countDownTimer < 0.0f;
 }
 
-void player_fixedloop(player_data *player, float deltaTime, joypad_port_t port, bool is_human)
+void player_fixedloop(SnakePlayer *player, float deltaTime, joypad_port_t port, bool is_human)
 {
   float speed = 0.0f;
   T3DVec3 newDir = {0};
@@ -269,12 +246,12 @@ void player_fixedloop(player_data *player, float deltaTime, joypad_port_t port, 
       newDir.v[2] = -(float)joypad.stick_y * 0.05f;
       speed = sqrtf(t3d_vec3_len2(&newDir));
     } else {
-      player_data* target = &players[player->ai_target];
-      if (player->plynum != target->plynum && target->isAlive) { // Check for a valid target
+      DirtBlock* target = &dirtBlocks[player->ai_target];
+      if (!target->isDestroyed) { // Check for a valid target
         // Move towards the direction of the target
         float dist, norm;
-        newDir.v[0] = (target->playerPos.v[0] - player->playerPos.v[0]);
-        newDir.v[2] = (target->playerPos.v[2] - player->playerPos.v[2]);
+        newDir.v[0] = (target->dirtBlockPos.v[0] - player->playerPos.v[0]);
+        newDir.v[2] = (target->dirtBlockPos.v[2] - player->playerPos.v[2]);
         dist = sqrtf(newDir.v[0]*newDir.v[0] + newDir.v[2]*newDir.v[2]);
         norm = 1/dist;
         newDir.v[0] *= norm;
@@ -294,7 +271,7 @@ void player_fixedloop(player_data *player, float deltaTime, joypad_port_t port, 
           }
         }
       } else {
-        player->ai_target = rand()%MAXPLAYERS; // (Attempt) to aquire a new target this frame
+        player->ai_target = rand() % 9; // (Attempt) to aquire a new target this frame
       }
     }
   }
@@ -334,7 +311,7 @@ void player_fixedloop(player_data *player, float deltaTime, joypad_port_t port, 
   }
 }
 
-void player_loop(player_data *player, float deltaTime, joypad_port_t port, bool is_human)
+void player_loop(SnakePlayer *player, float deltaTime, joypad_port_t port, bool is_human)
 {
   if (is_human && player_has_control(player))
   {
@@ -342,13 +319,36 @@ void player_loop(player_data *player, float deltaTime, joypad_port_t port, bool 
 
     if (btn.start) minigame_end();
 
-    // Player Attack
-    if((btn.a || btn.b) && !player->animAttack.isPlaying) {
+    // Player Dig
+    if ((((btn.z) && player->previousButtonPressed == btn.a) || ((btn.a) && player->previousButtonPressed == btn.z))  && !player->animAttack.isPlaying) {
       t3d_anim_set_playing(&player->animAttack, true);
       t3d_anim_set_time(&player->animAttack, 0.0f);
       player->isAttack = true;
       player->attackTimer = 0;
+      if (btn.a) {
+        player->previousButtonPressed = btn.a;
+      }
+      if (btn.z) {
+        player->previousButtonPressed = btn.z;
+      }
+      player->comboBonus = 15;
     }
+    if ((btn.z || btn.a) && !player->animAttack.isPlaying) {
+      t3d_anim_set_playing(&player->animAttack, true);
+      t3d_anim_set_time(&player->animAttack, 0.0f);
+      player->isAttack = true;
+      player->attackTimer = 0;
+      player->previousButtonPressed = btn.z;
+      player->comboBonus = 0;
+    }
+
+    if((btn.b) && !player->animJump.isPlaying) {
+      t3d_anim_set_playing(&player->animJump, true);
+      t3d_anim_set_time(&player->animJump, 0.0f);
+      player->isJump = true;
+      player->jumpTimer = 0;
+    }
+
   }
   
   // Update the animation and modify the skeleton, this will however NOT recalculate the matrices
@@ -359,6 +359,11 @@ void player_loop(player_data *player, float deltaTime, joypad_port_t port, bool 
   if(player->isAttack) {
     t3d_anim_update(&player->animAttack, deltaTime); // attack animation now overrides the idle one
     if(!player->animAttack.isPlaying)player->isAttack = false;
+  }
+
+  if(player->isJump) {
+    t3d_anim_update(&player->animJump, deltaTime); // attack animation now overrides the idle one
+    if(!player->animJump.isPlaying)player->isJump = false;
   }
 
   // We now blend the walk animation with the idle/attack one
@@ -377,17 +382,24 @@ void player_loop(player_data *player, float deltaTime, joypad_port_t port, bool 
   );
 }
 
-void player_draw(player_data *player)
+void player_draw(SnakePlayer *player)
 {
-  if (player->isAlive) {
-    rspq_block_run(player->dplSnake);
+  rspq_block_run(player->dplSnake);
+}
+
+void dirtBlockDraw(DirtBlock *dirtBlock)
+{
+  if (!dirtBlock->isDestroyed) {
+  	rspq_block_run(dirtBlock->dplDirtBlock);
+  }
+
+  if (dirtBlock->isDestroyed && dirtBlock->isContainingChest) {
+    rspq_block_run(chests[0].dplChestBlock);
   }
 }
 
-void player_draw_billboard(player_data *player, PlyNum playerNum)
+void player_draw_billboard(SnakePlayer *player, PlyNum playerNum)
 {
-  if (!player->isAlive) return;
-
   T3DVec3 billboardPos = (T3DVec3){{
     player->playerPos.v[0],
     player->playerPos.v[1] + BILLBOARD_YOFFSET,
@@ -427,18 +439,16 @@ void minigame_fixedloop(float deltaTime)
 
   if (!isEnding) {
     // Determine if a player has won
-    uint32_t alivePlayers = 0;
-    PlyNum lastPlayer = 0;
-    for (size_t i = 0; i < MAXPLAYERS; i++)
+    PlyNum lastPlayer = -1;
+    for (size_t i = 0; i < TOTAL_BLOCKS; i++)
     {
-      if (players[i].isAlive)
+      if (dirtBlocks[i].isDestroyed && dirtBlocks[i].isContainingChest)
       {
-        alivePlayers++;
-        lastPlayer = i;
+        lastPlayer = dirtBlocks[i].destroyingPlayer;
       }
     }
     
-    if (alivePlayers == 1) {
+    if (lastPlayer != -1) {
       isEnding = true;
       winner = lastPlayer;
       wav64_play(&sfx_stop, 31);
@@ -487,6 +497,11 @@ void minigame_loop(float deltaTime)
     player_draw(&players[i]);
   }
 
+  for (size_t i = 0; i < TOTAL_BLOCKS; i++)
+  {
+    dirtBlockDraw(&dirtBlocks[i]);
+  }
+
   syncPoint = rspq_syncpoint_new();
 
   for (size_t i = 0; i < MAXPLAYERS; i++)
@@ -507,28 +522,26 @@ void minigame_loop(float deltaTime)
     rdpq_text_printf(&textparms, FONT_TEXT, 0, 100, "Player %d wins!", winner+1);
   }
 
+  rdpq_text_printf(NULL, FONT_TEXT, 20, 240-20, "FPS: %.2f", display_get_fps());
+
   rdpq_detach_show();
-}
-
-void player_cleanup(player_data *player)
-{
-  rspq_block_free(player->dplSnake);
-
-  t3d_skeleton_destroy(&player->skel);
-  t3d_skeleton_destroy(&player->skelBlend);
-
-  t3d_anim_destroy(&player->animIdle);
-  t3d_anim_destroy(&player->animWalk);
-  t3d_anim_destroy(&player->animAttack);
-
-  free_uncached(player->modelMatFP);
 }
 
 void minigame_cleanup(void)
 {
   for (size_t i = 0; i < MAXPLAYERS; i++)
   {
-    player_cleanup(&players[i]);
+    cleanupSnakePlayer(&players[i]);
+  }
+
+  for (size_t i = 0; i < TOTAL_BLOCKS; i++)
+  {
+    cleanupDirtBlock(&dirtBlocks[i]);
+  }
+  
+  for (size_t i = 0; i < 1; i++)
+  {
+    cleanupChest(&chests[i]);
   }
 
   wav64_close(&sfx_start);
@@ -539,9 +552,11 @@ void minigame_cleanup(void)
   xm64player_close(&music);
   rspq_block_free(dplMap);
 
-  t3d_model_free(model);
+  t3d_model_free(snakeModel);
   t3d_model_free(modelMap);
-  t3d_model_free(modelShadow);
+  t3d_model_free(shadowModel);
+  t3d_model_free(chestModel);
+  t3d_model_free(dirtBlockModel);
 
   free_uncached(mapMatFP);
 
