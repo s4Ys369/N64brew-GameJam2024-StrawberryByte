@@ -7,3 +7,8 @@ filesystem/
 # Blender backup files
 *.blend[0-9]
 
+.DS_Store
+# IDE files
+cmake-*
+.idea
+CMakeLists.txt
