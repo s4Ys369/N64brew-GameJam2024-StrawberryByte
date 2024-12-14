@@ -96,6 +96,7 @@ void n64brew_logo(void)
             t3d_model_draw(brew);
             t3d_matrix_pop(1);
             sync = rspq_syncpoint_new();
+            rdpq_sync_pipe();
         }
         
         if (anim_part >= 2 && fade_white > 0.0f) {
