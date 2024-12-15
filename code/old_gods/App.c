@@ -37,8 +37,6 @@ Init function
 ================ */
 void App_Init(AppData* _appData){
     assert(_appData != NULL && "App_Init: argument is null");
-    debug_initialize();
-    debug_printf("USB UFNLoader Enabled!\n");
 
     debugf("App_Init\n");
 
@@ -52,15 +50,16 @@ void App_Init(AppData* _appData){
     PrintHeapStatus("ECS Init: ");
    
 
-    // Basic  setup for libdragon debugging
-    // toggled to true or false at the entry point
-    //if(_appData->gameplayData.isDebug == TRUE){
-        debug_init_isviewer(); // this enables the ISViewer debug channel
-        console_init();
-        debug_init_usblog();
-        console_set_debug(true);
-        //rdpq_debug_start();
-    //}
+    // // Basic  setup for libdragon debugging
+    // // toggled to true or false at the entry point
+    // //if(_appData->gameplayData.isDebug == TRUE){
+    //     debug_init_isviewer(); // this enables the ISViewer debug channel
+    //     console_init();
+    //     debug_init_usblog();
+    //     console_set_debug(true);
+    //     //rdpq_debug_start();
+    // //}
+    display_init( RESOLUTION_640x240, DEPTH_16_BPP, 2, GAMMA_NONE, FILTERS_RESAMPLE );
     PrintHeapStatus("Debug init: ");
 
     timer_init();
