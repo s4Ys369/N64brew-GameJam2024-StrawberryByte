@@ -87,14 +87,21 @@ ASSETS_LIST += \
 	filesystem/snowmen/arrow.t3dm \
 	filesystem/snowmen/SnowyMapTest6_4_Collision.col
 
+filesystem/snowmen/%.col: assets/snowmen/%.col
+	@mkdir -p $(dir $@)
+	@echo "    [CUSTOM_COLLISION] $@"
+	cp "$<" $@
+
+# Reenable this after we find out how to build a tool as part of the pipeline
+# filesystem/snowmen/%.col: assets/snowmen/%.glb
+# 	@echo "    [CUSTOM_COLLISION] $@"
+# 	$(CUSTOM_GLTF_COLLISION) "$<" $@
+# 	$(N64_BINDIR)/mkasset -c 2 -o $(dir $@) $@
 
 filesystem/snowmen/%.t3dm: assets/snowmen/%.glb
 	@mkdir -p $(dir $@)
 	@echo "    [T3D-MODEL] $@"
 	$(T3D_GLTF_TO_3D) "$<" $@
-	$(N64_BINDIR)/mkasset -c 2 -o $(dir $@) $@
-	@echo "    [CUSTOM_COLLISION] $@"
-	$(CUSTOM_GLTF_COLLISION) "$<" $@
 	$(N64_BINDIR)/mkasset -c 2 -o $(dir $@) $@
 
 filesystem/snowmen/m6x11plus.font64: MKFONT_FLAGS += --outline 1 --size 36
