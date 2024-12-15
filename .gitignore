@@ -2,7 +2,8 @@
 build/
 filesystem/
 *.z64
-# .vscode/
+.vscode/
+.idea/
 
 # Blender backup files
 *.blend[0-9]
