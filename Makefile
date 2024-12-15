@@ -17,7 +17,6 @@ filesystem/core/dragon3.sprite: MKSPRITE_FLAGS += --format I4 -c 2
 filesystem/core/dragon4.sprite: MKSPRITE_FLAGS += --format I4 -c 2
 filesystem/core/dragon.wav64: AUDIOCONV_FLAGS += --wav-resample 32000 --wav-mono --wav-compress 3
 
-
 ###
 
 include $(N64_INST)/include/n64.mk
@@ -28,7 +27,7 @@ DSO_LIST = $(addprefix $(MINIGAMEDSO_DIR)/, $(addsuffix .dso, $(MINIGAMES_LIST))
 
 IMAGE_LIST = $(wildcard $(ASSETS_DIR)/*.png) $(wildcard $(ASSETS_DIR)/core/*.png)
 FONT_LIST  = $(wildcard $(ASSETS_DIR)/*.ttf)
-MODEL_LIST  = $(wildcard $(ASSETS_DIR)/*.glb) $(wildcard $(ASSETS_DIR)/core/*.glb)
+MODEL_LIST  = $(wildcard $(ASSETS_DIR)/*.glb)
 SOUND_LIST  = $(wildcard $(ASSETS_DIR)/*.wav) $(wildcard $(ASSETS_DIR)/core/*.wav)
 SOUND2_LIST  = $(wildcard $(ASSETS_DIR)/*.mp3) $(wildcard $(ASSETS_DIR)/core/*.mp3)
 MUSIC_LIST  = $(wildcard $(ASSETS_DIR)/*.xm)
@@ -82,9 +81,10 @@ $(FILESYSTEM_DIR)/%.xm64: $(ASSETS_DIR)/%.xm
 define MINIGAME_template
 SRC_$(1) = \
 	$$(wildcard $$(MINIGAME_DIR)/$(1)/*.c) \
-	$$(wildcard $$(MINIGAME_DIR)/$(1)/*/*.c) \
+	$$(wildcard $$(MINIGAME_DIR)/$(1)/**/*.c) \
 	$$(wildcard $$(MINIGAME_DIR)/$(1)/*.cpp) \
-	$$(wildcard $$(MINIGAME_DIR)/$(1)/*/*.cpp)
+	$$(wildcard $$(MINIGAME_DIR)/$(1)/**/*.cpp) \
+	$$(wildcard $$(MINIGAME_DIR)/$(1)/**/**/*.cpp)
 $$(MINIGAMEDSO_DIR)/$(1).dso: $$(SRC_$(1):%.cpp=$$(BUILD_DIR)/%.o)
 $$(MINIGAMEDSO_DIR)/$(1).dso: $$(SRC_$(1):%.c=$$(BUILD_DIR)/%.o)
 -include $$(MINIGAME_DIR)/$(1)/$(1).mk

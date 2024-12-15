@@ -87,6 +87,34 @@ extern "C" {
 
     #define MAXPLAYERS  4
 
+    #define LEVELCOUNT  8
+
+    typedef enum {
+        LEVEL_BOOT,
+        LEVEL_LOGOS,
+        LEVEL_MAINMENU,
+        LEVEL_SETTINGS,
+        LEVEL_GAMESETUP,
+        LEVEL_MINIGAMESELECT,
+        LEVEL_MINIGAME,
+        LEVEL_WINNER,
+    } LevelDef;
+
+    typedef struct {
+        void (*funcPointer_init)(void);
+        void (*funcPointer_loop)(float deltatime);
+        void (*funcPointer_fixedloop)(float deltatime);
+        void (*funcPointer_cleanup)(void);
+    } Level;
+
+    void core_initlevels();
+    void core_level_changeto(LevelDef level);
+    void core_level_doinit();
+    void core_level_doloop(float deltatime);
+    void core_level_dofixedloop(float deltatime);
+    void core_level_docleanup();
+    bool core_level_waschanged();
+
     void core_set_playercount(uint32_t playercount);
     void core_set_aidifficulty(AiDiff difficulty);
     void core_set_subtick(double subtick);
