@@ -90,6 +90,10 @@ static menu_screen current_screen;  // Current menu screen
 static int item_count;              // The number of selection items in the current screen
 static const char *heading;         // The heading of the menu screen
 static int select;                  // The currently selected item
+static int yscroll;
+
+static bool was_minigame = false;
+static surface_t minigame_frame;
 
 static bool was_minigame = false;
 static surface_t minigame_frame;
@@ -103,6 +107,7 @@ static surface_t minigame_frame;
 void set_menu_screen(menu_screen screen)
 {
     current_screen = screen;
+    yscroll = 0;
     switch (current_screen) {
     case SCREEN_PLAYERCOUNT:
         item_count = MAXPLAYERS;
@@ -213,6 +218,10 @@ char* menu(void)
         if (select < 0) select = 0;
         if (select > item_count-1) select = item_count-1;
 
+        if (select < yscroll) {
+            yscroll -= 1;
+        }
+
         joypad_buttons_t btn = joypad_get_buttons_pressed(JOYPAD_PORT_1);
 
         if (btn.a) {
@@ -299,7 +308,14 @@ char* menu(void)
         ycur += rdpq_text_print(&textparms, FONT_TEXT, x0-20, ycur, heading).advance_y;
         ycur += 4;
 
-        for (int i = 0; i < item_count; i++) {
+        for (int i = yscroll; i < item_count; i++) {
+            if (ycur > 160) {
+                if (select == i) {
+                    yscroll += 1;                    
+                }
+                break;
+            }
+
             if (select == i) yselect_target = ycur;
 
             switch (current_screen) {
@@ -323,7 +339,14 @@ char* menu(void)
 
             Minigame *cur = &global_minigame_list[sorted_indices[select]];
 
-            int y0 = 180;
+            rdpq_set_mode_standard();
+            rdpq_mode_combiner(RDPQ_COMBINER_FLAT);
+            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+            rdpq_set_prim_color(color_from_packed32(0x000000C7));
+            rdpq_fill_rectangle(5, 158, 315, 237);
+
+            rdpq_set_mode_standard();
+            int y0 = 171;
             y0 += rdpq_text_printf(&parms, FONT_TEXT, 10, y0, "%s\n\n", cur->definition.description).advance_y;
             y0 += rdpq_text_printf(&parms, FONT_TEXT, 10, y0, "%s\n", cur->definition.instructions).advance_y;
         }

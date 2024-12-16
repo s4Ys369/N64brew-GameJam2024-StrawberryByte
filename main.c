@@ -111,5 +111,8 @@ int main()
         //menu_copy_minigame_frame();
         minigame_get_game()->funcPointer_cleanup();
         minigame_cleanup();
+
+        mixer_close();
+        mixer_init(32);
     }
 }
