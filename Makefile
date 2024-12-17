@@ -41,35 +41,48 @@ endif
 
 all: $(ROMNAME).z64
 
+COLOR ?= 1
+
+# ANSI escape codes, can also use \033[38;2;<r>;<g>;<b>m
+ifeq ($(COLOR),1)
+RESET   := \033[0m
+RED     := \033[0;31m
+GREEN   := \033[0;32m
+BLUE    := \033[0;34m
+YELLOW  := \033[0;33m
+CYAN    := \033[36m
+BLINK   := \033[33;5m
+endif
+
 $(FILESYSTEM_DIR)/%.sprite: $(ASSETS_DIR)/%.png
 	@mkdir -p $(dir $@)
-	@echo "    [SPRITE] $@"
+	@echo "    $(RED)[SPRITE] $@$(RESET)"
 	$(N64_MKSPRITE) $(MKSPRITE_FLAGS) -o $(dir $@) "$<"
 
 $(FILESYSTEM_DIR)/%.font64: $(ASSETS_DIR)/%.ttf
 	@mkdir -p $(dir $@)
-	@echo "    [FONT] $@"
+	@echo "    $(GREEN)[FONT] $@$(RESET)"
 	$(N64_MKFONT) $(MKFONT_FLAGS) -o $(dir $@) "$<"
 
 $(FILESYSTEM_DIR)/%.t3dm: $(ASSETS_DIR)/%.glb
 	@mkdir -p $(dir $@)
-	@echo "    [T3D-MODEL] $@"
+	@echo "    $(YELLOW)[T3D-MODEL] $@$(RESET)"
 	$(T3D_GLTF_TO_3D) $(T3DM_FLAGS) "$<" $@
 	$(N64_BINDIR)/mkasset -c 2 -o $(dir $@) $@
 
 $(FILESYSTEM_DIR)/%.wav64: $(ASSETS_DIR)/%.wav
 	@mkdir -p $(dir $@)
-	@echo "    [SFX] $@"
+	@echo "    $(BLUE)[SFX] $@$(RESET)"
 	$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o $(dir $@) "$<"
 
 $(FILESYSTEM_DIR)/%.wav64: $(ASSETS_DIR)/%.mp3
 	@mkdir -p $(dir $@)
-	@echo "    [SFX] $@"
+	@echo "    $(BLUE)[SFX] $@$(RESET)"
 	$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o $(dir $@) "$<"
 
 $(FILESYSTEM_DIR)/%.xm64: $(ASSETS_DIR)/%.xm
 	@mkdir -p $(dir $@)
-	@echo "    [XM] $@"
+	@echo "    $(CYAN)[XM] $@$(RESET)"
 	$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o $(dir $@) "$<"
 
 define MINIGAME_template
