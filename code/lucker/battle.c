@@ -467,7 +467,10 @@ void fighter_cleanup(player *player)
     t3d_anim_destroy(&player->fighter.animWalk);
     t3d_anim_destroy(&player->fighter.animDeath);
     t3d_anim_destroy(&player->fighter.animJump);
+<<<<<<< HEAD
     t3d_anim_destroy(&player->fighter.animAttack);
+=======
+>>>>>>> upstream/main
 
     free_uncached(player->fighter.fighterMatFP);
 }
