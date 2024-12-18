@@ -20,6 +20,7 @@ The file contains the results screen
 #define POINTS_DELAY            1.5f
 #define POINTS_DURATION         0.3f
 #define CONFIRM_DELAY           2.0f
+#define ANNOUNCE_DELAY          3.0f
 #define FADE_OUT_DURATION       0.6f
 #define FADE_OUT_POST_DELAY     0.2f
 
@@ -37,6 +38,7 @@ static sprite_t *icon_star;
 
 static float time;
 
+static float confirm_start;
 static bool fading_out;
 static float fade_out_start;
 
@@ -50,6 +52,14 @@ int results_get_points(PlyNum player)
 void results_set_points(PlyNum player, int points)
 {
     global_points[player] = points;
+}
+
+void results_reset_points()
+{
+    for (PlyNum i = 0; i < MAXPLAYERS; i++)
+    {
+        global_points[i] = 0;
+    }
 }
 
 int results_get_points_to_win()
@@ -69,11 +79,7 @@ inline bool player_has_won(PlyNum player)
 
 void results_init()
 {
-    global_points[0] = 1;
-    global_points[1] = 2;
-    global_points[2] = 0;
-    global_points[3] = 1;
-    core_set_winner(PLAYER_1);
+    ending = false;
 
     // Award points to winning players
     for (PlyNum i = 0; i < MAXPLAYERS; i++) {
@@ -110,6 +116,8 @@ void results_init()
 
     time = 0;
     fading_out = false;
+
+    confirm_start = ending ? ANNOUNCE_DELAY : 0.0f;
 
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE);
 }
@@ -201,6 +209,9 @@ void results_loop(float deltatime)
     float bg_fade = time < FADE_IN_DURATION ? (time/FADE_IN_DURATION) : 1.0f;
     menu_draw_bg(bg_pattern, bg_gradient, time * 12.0f, bg_fade);
 
+    bool can_confirm = time - confirm_start > CONFIRM_DELAY;
+    bool is_announcing = ending && time > ANNOUNCE_DELAY;
+
     // Box background
     int rect_width = 260;
     int rect_height = 180;
@@ -245,25 +256,47 @@ void results_loop(float deltatime)
                             pos_x + rect_width - 1, ycur + rect_height - 1, 0, 0);
     }
 
+    pos_x = 30;
+
     if (time > TEXT_DELAY) {
-        // Text
+        ycur += 20;
+
         rdpq_textparms_t parms = {
             .align = ALIGN_CENTER,
             .width = 260
         };
 
-        ycur += 20;
-
-        if (ending) {
+        if (is_announcing) {
+            int ytmp = ycur;
+            ycur += 34;
             rdpq_set_mode_standard();
-            ycur += rdpq_text_printf(&parms, FONT_TEXT, pos_x, ycur, "WINNER\n").advance_y;
-            ycur += 40;
+            rdpq_mode_combiner(RDPQ_COMBINER_TEX_FLAT);
+            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+            rdpq_blitparms_t blitparms = {
+                .cx = 10,
+                .cy = 10,
+                .theta = fmodf(time*2.4f, FM_PI*2)
+            };
             for (PlyNum i = 0; i < MAXPLAYERS; i++)
             {
-                if (player_has_won(i)) {
-                    ycur += rdpq_text_printf(&parms, FONT_TEXT, pos_x, ycur, "^0%dPlayer %d\n", i+1, i+1).advance_y;
-                }
+                if (!player_has_won(i)) continue;
+                rdpq_set_prim_color(player_colors[i]);
+                rdpq_sprite_blit(icon_star, display_get_width()/2 - 50, ycur - 3, &blitparms);
+                rdpq_sprite_blit(icon_star, display_get_width()/2 + 50, ycur - 3, &blitparms);
+                ycur += 22;
             }
+
+            ycur = ytmp;
+            rdpq_set_mode_standard();
+            rdpq_text_printf(&parms, FONT_TEXT, pos_x, ycur, "CONGRATULATIONS!");
+            ycur += 34;
+            for (PlyNum i = 0; i < MAXPLAYERS; i++)
+            {
+                if (!player_has_won(i)) continue;
+                rdpq_text_printf(&parms, FONT_TEXT, pos_x, ycur, "Player %d", i+1);
+                ycur += 22;
+            }
+            rdpq_text_printf(&parms, FONT_TEXT, pos_x, ycur, "won!");
         } else {
             int ytmp = ycur;
 
@@ -275,17 +308,17 @@ void results_loop(float deltatime)
             for (PlyNum i = 0; i < MAXPLAYERS; i++)
             {
                 rdpq_set_prim_color(player_colors[i]);
-                rdpq_sprite_blit(icon_player, pos_x + 20, ycur, NULL);
+                rdpq_sprite_blit(icon_player, pos_x + 10, ycur, NULL);
 
                 for (int j = 0; j < points_to_win; j++)
                 {
                     rdpq_set_prim_color(RGBA32(0x20, 0x20, 0x20, 0xFF));
-                    rdpq_sprite_blit(icon_player, pos_x + 20 + (j+1) * 30, ycur, NULL);
+                    rdpq_sprite_blit(icon_player, pos_x + 10 + (j+1) * 30, ycur, NULL);
 
                     float point_scale = get_point_scale(i, j);
                     if (point_scale > 0.0f) {
                         rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
-                        rdpq_sprite_blit(icon_star, pos_x + 32 + (j+1) * 30, ycur+12, &(rdpq_blitparms_t){
+                        rdpq_sprite_blit(icon_star, pos_x + 22 + (j+1) * 30, ycur+12, &(rdpq_blitparms_t){
                             .cx = 10,
                             .cy = 10,
                             .scale_x = point_scale, 
@@ -301,25 +334,26 @@ void results_loop(float deltatime)
             ycur = ytmp;
             rdpq_set_mode_standard();
 
+            ycur += rdpq_text_printf(&parms, FONT_TEXT, pos_x, ycur, "RESULTS\n").advance_y;
+
             rdpq_textparms_t plyparms = {
                 .style_id = FONT_STYLE_WHITE,
                 .width = 24,
                 .align = ALIGN_CENTER
             };
-            ycur += rdpq_text_printf(&parms, FONT_TEXT, pos_x, ycur, "RESULTS\n").advance_y;
 
             for (PlyNum i = 0; i < MAXPLAYERS; i++)
             {
-                rdpq_text_printf(&plyparms, FONT_TEXT, pos_x + 20, ycur + 16, "P%d", i+1);
+                rdpq_text_printf(&plyparms, FONT_TEXT, pos_x + 10, ycur + 16, "P%d", i+1);
 
                 if (core_get_winner(i)) {
-                    rdpq_text_printf(&plyparms, FONT_TEXT, pos_x + (points_to_win+1) * 30 + 15, ycur + 16, "+1");
+                    rdpq_text_printf(&plyparms, FONT_TEXT, pos_x + (points_to_win+1) * 30 + 5, ycur + 16, "+1");
                 }
                 ycur += 30;
             }
         }
 
-        if (time > CONFIRM_DELAY) {
+        if (can_confirm) {
             rdpq_text_printf(&parms, FONT_TEXT, pos_x, 200, "Press A to continue");
         }
     }
@@ -338,13 +372,16 @@ void results_loop(float deltatime)
 
     rdpq_detach_show();
 
-    if (time > CONFIRM_DELAY && !fading_out && btn.a) {
+    if (can_confirm && !fading_out && btn.a) {
         fading_out = true;
         fade_out_start = time;
     }
 
     if (fading_out && time > fade_out_start + FADE_OUT_DURATION + FADE_OUT_POST_DELAY) {
-        if (ending) menu_reset();
+        if (ending) {
+            menu_reset();
+            results_reset_points();
+        }
         core_level_changeto(LEVEL_MINIGAMESELECT);
     }
 }
