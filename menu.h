@@ -9,6 +9,7 @@
     void menu_loop(float deltatime);
     void menu_cleanup();
 
+    void menu_reset();
     void menu_copy_minigame_frame();
 
 #endif

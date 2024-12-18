@@ -131,7 +131,7 @@ void minigame_loadnext(char* name)
 void minigame_end()
 {
     global_minigame_ending = true;
-    core_level_changeto(LEVEL_MINIGAMESELECT);
+    core_level_changeto(LEVEL_RESULTS);
 }
 
 

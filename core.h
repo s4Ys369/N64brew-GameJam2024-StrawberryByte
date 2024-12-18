@@ -1,6 +1,8 @@
 #ifndef GAMEJAM2024_CORE_H
 #define GAMEJAM2024_CORE_H
 
+#include <libdragon.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -69,6 +71,14 @@ extern "C" {
     double core_get_subtick();
 
     /*==============================
+        core_get_winner
+        Returns whether a player has won the last minigame.
+        @param  The player to query
+        @return True if the player has won, false otherwise.
+    ==============================*/
+    bool core_get_winner(PlyNum ply);
+
+    /*==============================
         core_set_winner
         Set the winner of the minigame. You can call this
         multiple times to set multiple winners.
@@ -97,7 +107,7 @@ extern "C" {
         LEVEL_GAMESETUP,
         LEVEL_MINIGAMESELECT,
         LEVEL_MINIGAME,
-        LEVEL_WINNER,
+        LEVEL_RESULTS,
     } LevelDef;
 
     typedef struct {

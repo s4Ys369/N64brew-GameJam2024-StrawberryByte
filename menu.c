@@ -10,6 +10,7 @@ This file contains the code for the basic menu
 #include "core.h"
 #include "minigame.h"
 #include "config.h"
+#include "results.h"
 
 
 /*********************************
@@ -118,6 +119,11 @@ static rdpq_font_t *font;
 static rdpq_font_t *fontdbg;
 static int* sorted_indices;
 
+void menu_reset()
+{
+    is_first_time = true;
+}
+
 /*==============================
     set_menu_screen
     Switches the menu to another screen
@@ -154,7 +160,7 @@ void set_menu_screen(menu_screen screen)
 
 void menu_init()
 {
-    difficulty = PLAYER_COUNT;
+    difficulty = AI_DIFFICULTY;
     playercount = PLAYER_COUNT;
     BLACK = RGBA32(0x00,0x00,0x00,0xFF);
     ASH_GRAY = RGBA32(0xAD,0xBA,0xBD,0xFF);
@@ -172,6 +178,7 @@ void menu_init()
 
     core_set_aidifficulty(difficulty);
     core_set_playercount(playercount);
+    results_set_points_to_win(3);
 
     logo = sprite_load("rom:/n64brew.ia8.sprite");
     jam = sprite_load("rom:/jam.rgba32.sprite");
@@ -188,7 +195,7 @@ void menu_init()
         if (joypad_is_connected(i)) 
             playercount++;
 
-    sorted_indices = (int*)malloc(global_minigame_count);
+    sorted_indices = malloc(global_minigame_count * sizeof(int));
     for (int i = 0; i < global_minigame_count; i++)
         sorted_indices[i] = i;
     qsort(sorted_indices, global_minigame_count, sizeof(int), minigame_sort);

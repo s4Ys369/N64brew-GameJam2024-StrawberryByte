@@ -7,7 +7,7 @@ MINIGAME_DIR = code
 FILESYSTEM_DIR = filesystem
 MINIGAMEDSO_DIR = $(FILESYSTEM_DIR)/minigames
 
-SRC = main.c core.c minigame.c menu.c logo.c savestate.c
+SRC = main.c core.c minigame.c menu.c logo.c savestate.c results.c
 
 filesystem/squarewave.font64: MKFONT_FLAGS += --outline 1 --range all
 filesystem/core/brewlogo.sprite: MKFONT_FLAGS += --format CI4 -c 2

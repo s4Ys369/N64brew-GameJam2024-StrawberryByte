@@ -8,6 +8,7 @@ loaded if it crashes
 #include <libdragon.h>
 #include "core.h"
 #include "minigame.h"
+#include "results.h"
 #include "savestate.h"
 
 
@@ -114,11 +115,11 @@ void savestate_save()
     // Grab the game state
     global_gamesave.playercount = core_get_playercount();
     global_gamesave.aidiff = core_get_aidifficulty();
-    global_gamesave.pointstowin = 0; // TODO
-    global_gamesave.points[0] = 0; // TODO
-    global_gamesave.points[1] = 0; // TODO
-    global_gamesave.points[2] = 0; // TODO
-    global_gamesave.points[3] = 0; // TODO
+    global_gamesave.pointstowin = results_get_points_to_win();
+    global_gamesave.points[0] = results_get_points(PLAYER_1);
+    global_gamesave.points[1] = results_get_points(PLAYER_2);
+    global_gamesave.points[2] = results_get_points(PLAYER_3);
+    global_gamesave.points[3] = results_get_points(PLAYER_4);
     global_gamesave.nextplaystyle = 0; // TODO
     global_gamesave.chooser = 0; // TODO
     global_gamesave.curgame = 0; // TODO
@@ -142,11 +143,11 @@ void savestate_load()
     // Recover the game state
     core_set_playercount(global_gamesave.playercount);
     core_set_aidifficulty(global_gamesave.aidiff);
-    //global_gamesave.pointstowin; // TODO
-    //global_gamesave.points[0]; // TODO
-    //global_gamesave.points[1]; // TODO
-    //global_gamesave.points[2]; // TODO
-    //global_gamesave.points[3]; // TODO
+    results_set_points_to_win(global_gamesave.pointstowin);
+    results_set_points(PLAYER_1, global_gamesave.points[0]);
+    results_set_points(PLAYER_2, global_gamesave.points[1]);
+    results_set_points(PLAYER_3, global_gamesave.points[2]);
+    results_set_points(PLAYER_4, global_gamesave.points[3]);
     //global_gamesave.nextplaystyle; // TODO
     //global_gamesave.chooser; // TODO
     //global_gamesave.curgame; // TODO

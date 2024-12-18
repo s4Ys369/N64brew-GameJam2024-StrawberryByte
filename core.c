@@ -10,6 +10,7 @@ player, AI, and game loop information.
 #include "minigame.h"
 #include "config.h"
 #include "menu.h"
+#include "results.h"
 
 
 /*********************************
@@ -96,6 +97,18 @@ void core_set_aidifficulty(AiDiff difficulty)
     global_core_aidifficulty = difficulty;
 }
 
+
+/*==============================
+    core_get_winner
+    Returns whether a player has won the last minigame.
+    @param  The player to query
+    @return True if the player has won, false otherwise.
+==============================*/
+
+bool core_get_winner(PlyNum ply)
+{
+    return global_core_playeriswinner[ply];
+}
 
 /*==============================
     core_set_winner
@@ -192,6 +205,11 @@ void core_initlevels()
     global_core_alllevels[LEVEL_MINIGAMESELECT].funcPointer_loop      = menu_loop;
     global_core_alllevels[LEVEL_MINIGAMESELECT].funcPointer_fixedloop = NULL;
     global_core_alllevels[LEVEL_MINIGAMESELECT].funcPointer_cleanup   = menu_cleanup;
+
+    global_core_alllevels[LEVEL_RESULTS].funcPointer_init      = results_init;
+    global_core_alllevels[LEVEL_RESULTS].funcPointer_loop      = results_loop;
+    global_core_alllevels[LEVEL_RESULTS].funcPointer_fixedloop = NULL;
+    global_core_alllevels[LEVEL_RESULTS].funcPointer_cleanup   = results_cleanup;
 }
 
 
