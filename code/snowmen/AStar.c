@@ -47,6 +47,9 @@ void AStarRun(node* start, node* destination, NodeDynamicArray* path)//maybe no 
                 currentPathNode = currentPathNode->backConnection;
                 //debugf("woah 3\n");
             }
+
+            free(SearchList.nodeArray);
+            free(ProcessedList.nodeArray);
             return; //&path;
         }
         
@@ -90,6 +93,8 @@ void AStarRun(node* start, node* destination, NodeDynamicArray* path)//maybe no 
     //Find the lowest F values among the search list
     //    If there is a tie, choose one with lowest H cost
     //Chosen node is new current node
+    free(SearchList.nodeArray);
+    free(ProcessedList.nodeArray);
 }
 
 
@@ -195,4 +200,21 @@ node* NodeDA_GetClosestNode(NodeDynamicArray* AllNodes, T3DVec3 Position)//PROBL
 
 
     return currentBest;
+}
+
+void NodeDA_Free(NodeDynamicArray* NodeDA)
+{
+    node **array = NodeDA->nodeArray;
+    int length = NodeDA->length;
+    NodeDA->nodeArray = NULL;
+    NodeDA->length = 0;
+    NodeDA->AllocatedLength = 0;
+
+    if (length > 0) {
+        for (int i = 0; i < length; i++)
+        {
+            NodeDA_Free(&array[i]->neighbors);
+        }
+        free(array);
+    }
 }
