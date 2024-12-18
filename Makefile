@@ -1,5 +1,6 @@
 ROMNAME = gamejam2024
 ROMTITLE = "N64BREW GAMEJAM 2024"
+DEBUG = 1
 
 BUILD_DIR = build
 ASSETS_DIR = assets
@@ -33,10 +34,8 @@ ASSETS_LIST += $(subst $(ASSETS_DIR),$(FILESYSTEM_DIR),$(SOUND2_LIST:%.mp3=%.wav
 ASSETS_LIST += $(subst $(ASSETS_DIR),$(FILESYSTEM_DIR),$(MUSIC_LIST:%.xm=%.xm64))
 
 ifeq ($(DEBUG), 1)
-	N64_CFLAGS += -g -O0
+	N64_CFLAGS += -g -DDEBUG=$(DEBUG)
 	N64_LDFLAGS += -g
-else
-	N64_CFLAGS += -O2
 endif
 
 all: $(ROMNAME).z64

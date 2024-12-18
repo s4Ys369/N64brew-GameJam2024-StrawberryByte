@@ -2425,6 +2425,8 @@ void minigame_cleanup()
 
     t3d_destroy(); 
     display_close();
+
+    NodeDA_Free(&AllNodes);
 }
 
 
