@@ -196,3 +196,20 @@ node* NodeDA_GetClosestNode(NodeDynamicArray* AllNodes, T3DVec3 Position)//PROBL
 
     return currentBest;
 }
+
+void NodeDA_Free(NodeDynamicArray* NodeDA)
+{
+    node **array = NodeDA->nodeArray;
+    int length = NodeDA->length;
+    NodeDA->nodeArray = NULL;
+    NodeDA->length = 0;
+    NodeDA->AllocatedLength = 0;
+
+    if (length > 0) {
+        for (int i = 0; i < length; i++)
+        {
+            NodeDA_Free(&array[i]->neighbors);
+        }
+        free(array);
+    }
+}
