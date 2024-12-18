@@ -58,7 +58,7 @@ bool NodeDA_Contains(NodeDynamicArray* NodeDA, struct node* nodeToCheck);
 
 node* NodeDA_GetClosestNode(NodeDynamicArray* AllNodes, T3DVec3 Position);
 
-
+void NodeDA_Free(NodeDynamicArray* NodeDA);
 
 
 #endif
