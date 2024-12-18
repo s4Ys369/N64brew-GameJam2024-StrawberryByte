@@ -90,6 +90,8 @@ void AStarRun(node* start, node* destination, NodeDynamicArray* path)//maybe no 
     //Find the lowest F values among the search list
     //    If there is a tie, choose one with lowest H cost
     //Chosen node is new current node
+    NodeDA_Free(&SearchList);
+    NodeDA_Free(&ProcessedList);
 }
 
 
