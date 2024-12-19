@@ -1,6 +1,6 @@
 /***************************************************************
                            results.c
-                               
+
 The file contains the results screen
 ***************************************************************/
 
@@ -9,20 +9,20 @@ The file contains the results screen
 #include "menu.h"
 #include <libdragon.h>
 
-#define FONT_TEXT               1
-#define FONT_STYLE_DEFAULT      0
-#define FONT_STYLE_WHITE        5
+#define FONT_TEXT 1
+#define FONT_STYLE_DEFAULT 0
+#define FONT_STYLE_WHITE 5
 
-#define FADE_IN_DURATION        0.5f
-#define BOX_ANIMATION_DELAY     0.2f
-#define BOX_ANIMATION_DURATION  0.4f
-#define TEXT_DELAY              0.7f
-#define POINTS_DELAY            1.5f
-#define POINTS_DURATION         0.3f
-#define CONFIRM_DELAY           2.0f
-#define ANNOUNCE_DELAY          3.0f
-#define FADE_OUT_DURATION       0.6f
-#define FADE_OUT_POST_DELAY     0.2f
+#define FADE_IN_DURATION 0.5f
+#define BOX_ANIMATION_DELAY 0.2f
+#define BOX_ANIMATION_DURATION 0.4f
+#define TEXT_DELAY 0.7f
+#define POINTS_DELAY 1.5f
+#define POINTS_DURATION 0.3f
+#define CONFIRM_DELAY 2.0f
+#define ANNOUNCE_DELAY 3.0f
+#define FADE_OUT_DURATION 0.6f
+#define FADE_OUT_POST_DELAY 0.2f
 
 static int points_to_win;
 static int global_points[MAXPLAYERS];
@@ -82,21 +82,24 @@ void results_init()
     ending = false;
 
     // Award points to winning players
-    for (PlyNum i = 0; i < MAXPLAYERS; i++) {
-        
-        if (core_get_winner(i)) {
+    for (PlyNum i = 0; i < MAXPLAYERS; i++)
+    {
+
+        if (core_get_winner(i))
+        {
             results_set_points(i, results_get_points(i) + 1);
         }
 
-        if (player_has_won(i)) {
+        if (player_has_won(i))
+        {
             ending = true;
         }
     }
 
     font = rdpq_font_load("rom:/squarewave.font64");
     rdpq_text_register_font(FONT_TEXT, font);
-    rdpq_font_style(font, FONT_STYLE_DEFAULT, &(rdpq_fontstyle_t){.color = RGBA32(0xFF,0xDD,0xDD,0xFF), .outline_color = RGBA32(0x31,0x39,0x3C,0xFF) });
-    rdpq_font_style(font, FONT_STYLE_WHITE, &(rdpq_fontstyle_t){.color = RGBA32(0xFF,0xFF,0xFF,0xFF) });
+    rdpq_font_style(font, FONT_STYLE_DEFAULT, &(rdpq_fontstyle_t){.color = RGBA32(0xFF, 0xDD, 0xDD, 0xFF), .outline_color = RGBA32(0x31, 0x39, 0x3C, 0xFF)});
+    rdpq_font_style(font, FONT_STYLE_WHITE, &(rdpq_fontstyle_t){.color = RGBA32(0xFF, 0xFF, 0xFF, 0xFF)});
 
     player_colors[0] = PLAYERCOLOR_1;
     player_colors[1] = PLAYERCOLOR_2;
@@ -105,7 +108,7 @@ void results_init()
 
     for (size_t i = 0; i < MAXPLAYERS; i++)
     {
-        rdpq_font_style(font, i+1, &(rdpq_fontstyle_t){.color = player_colors[i] });
+        rdpq_font_style(font, i + 1, &(rdpq_fontstyle_t){.color = player_colors[i]});
     }
 
     bg_pattern = sprite_load("rom:/pattern.i8.sprite");
@@ -128,7 +131,7 @@ void results_init()
  * @param gradient gradient on the Y axis
  * @param offset scroll offset
  */
-void menu_draw_bg(sprite_t *pattern, sprite_t *gradient, float offset, float fade)
+void menu_draw_bg_fade(sprite_t *pattern, sprite_t *gradient, float offset, float fade)
 {
     rdpq_set_mode_standard();
     rdpq_mode_begin();
@@ -136,8 +139,7 @@ void menu_draw_bg(sprite_t *pattern, sprite_t *gradient, float offset, float fad
     rdpq_mode_alphacompare(0);
     rdpq_mode_combiner(RDPQ_COMBINER2(
         (TEX0, 0, TEX1, 0), (0, 0, 0, 1),
-        (COMBINED, 0, PRIM, 0), (0, 0, 0, 1)
-    ));
+        (COMBINED, 0, PRIM, 0), (0, 0, 0, 1)));
     rdpq_mode_dithering(DITHER_BAYER_BAYER);
     rdpq_mode_filter(FILTER_BILINEAR);
     rdpq_mode_end();
@@ -169,28 +171,31 @@ float ease_cubic_out(float t)
     return f * f * f + 1.0f;
 }
 
-
 float ease_back_out(float t)
 {
-  float o, z, n;
+    float o, z, n;
 
-  o = 1.70158f;
-  n = t - 1.0f;
-  z = (o + 1.0f) * n + o;
+    o = 1.70158f;
+    n = t - 1.0f;
+    z = (o + 1.0f) * n + o;
 
-  return n * n * z + 1.0f;
+    return n * n * z + 1.0f;
 }
 
 float get_point_scale(PlyNum player, int index)
 {
     int points = global_points[player];
-    if (index >= points) return 0.0f;
+    if (index >= points)
+        return 0.0f;
 
-    if (core_get_winner(player) && index == points-1) {
-        if (time < POINTS_DELAY) return 0.0f;
-        if (time > POINTS_DELAY + POINTS_DURATION) return 1.0f;
+    if (core_get_winner(player) && index == points - 1)
+    {
+        if (time < POINTS_DELAY)
+            return 0.0f;
+        if (time > POINTS_DELAY + POINTS_DURATION)
+            return 1.0f;
         float point_time = time - POINTS_DELAY;
-        return ease_back_out(point_time/POINTS_DURATION);
+        return ease_back_out(point_time / POINTS_DURATION);
     }
 
     return 1.0f;
@@ -205,9 +210,9 @@ void results_loop(float deltatime)
     surface_t *disp = display_get();
 
     rdpq_attach(disp, NULL);
-    
-    float bg_fade = time < FADE_IN_DURATION ? (time/FADE_IN_DURATION) : 1.0f;
-    menu_draw_bg(bg_pattern, bg_gradient, time * 12.0f, bg_fade);
+
+    float bg_fade = time < FADE_IN_DURATION ? (time / FADE_IN_DURATION) : 1.0f;
+    menu_draw_bg_fade(bg_pattern, bg_gradient, time * 12.0f, bg_fade);
 
     bool can_confirm = time - confirm_start > CONFIRM_DELAY;
     bool is_announcing = ending && time > ANNOUNCE_DELAY;
@@ -217,8 +222,9 @@ void results_loop(float deltatime)
     int rect_height = 180;
 
     float box_time = time - BOX_ANIMATION_DELAY;
-    if (box_time < BOX_ANIMATION_DURATION) {
-        float box_factor = ease_cubic_out(box_time/BOX_ANIMATION_DURATION);
+    if (box_time < BOX_ANIMATION_DURATION)
+    {
+        float box_factor = ease_cubic_out(box_time / BOX_ANIMATION_DURATION);
         rect_width *= box_factor;
         rect_height *= box_factor;
     }
@@ -226,7 +232,8 @@ void results_loop(float deltatime)
     int pos_x = display_get_width() / 2 - (rect_width / 2) - 8;
     int ycur = display_get_height() / 2 - (rect_height / 2) - 8;
 
-    if (time > BOX_ANIMATION_DELAY) {
+    if (time > BOX_ANIMATION_DELAY)
+    {
         rdpq_set_mode_standard();
         rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
         rdpq_mode_combiner(RDPQ_COMBINER_TEX_FLAT);
@@ -234,39 +241,43 @@ void results_loop(float deltatime)
 
         rdpq_tex_multi_begin();
         rdpq_sprite_upload(TILE0, btn_game, &(rdpq_texparms_t){
-            .s.repeats = 1, .t.repeats = 1,
-        });
+                                                .s.repeats = 1,
+                                                .t.repeats = 1,
+                                            });
         rdpq_tex_reuse_sub(TILE1, &(rdpq_texparms_t){
-            .s.repeats = 1, .t.repeats = 1,
-        }, 0, 0, 16, 16);
+                                      .s.repeats = 1,
+                                      .t.repeats = 1,
+                                  },
+                           0, 0, 16, 16);
         rdpq_tex_multi_end();
 
-        rdpq_set_prim_color(RGBA32(0xAD,0xBA,0xBD,0xFF));
+        rdpq_set_prim_color(RGBA32(0xAD, 0xBA, 0xBD, 0xFF));
         rdpq_texture_rectangle(TILE1, // left, top
-                            pos_x, ycur,
-                            pos_x + rect_width, ycur + rect_height, 0, 0);
+                               pos_x, ycur,
+                               pos_x + rect_width, ycur + rect_height, 0, 0);
         rdpq_texture_rectangle(TILE1, // right, top
-                            pos_x + rect_width + 14, ycur,
-                            pos_x + rect_width - 1, ycur + rect_height, 0, 0);
+                               pos_x + rect_width + 14, ycur,
+                               pos_x + rect_width - 1, ycur + rect_height, 0, 0);
         rdpq_texture_rectangle(TILE1, // left, bottom
-                            pos_x, ycur + rect_height + 14,
-                            pos_x + rect_width, ycur + rect_height - 1, 0, 0);
+                               pos_x, ycur + rect_height + 14,
+                               pos_x + rect_width, ycur + rect_height - 1, 0, 0);
         rdpq_texture_rectangle(TILE1, // right, bottom
-                            pos_x + rect_width + 14, ycur + rect_height + 14,
-                            pos_x + rect_width - 1, ycur + rect_height - 1, 0, 0);
+                               pos_x + rect_width + 14, ycur + rect_height + 14,
+                               pos_x + rect_width - 1, ycur + rect_height - 1, 0, 0);
     }
 
     pos_x = 30;
 
-    if (time > TEXT_DELAY) {
+    if (time > TEXT_DELAY)
+    {
         ycur += 20;
 
         rdpq_textparms_t parms = {
             .align = ALIGN_CENTER,
-            .width = 260
-        };
+            .width = 260};
 
-        if (is_announcing) {
+        if (is_announcing)
+        {
             int ytmp = ycur;
             ycur += 34;
             rdpq_set_mode_standard();
@@ -275,14 +286,14 @@ void results_loop(float deltatime)
             rdpq_blitparms_t blitparms = {
                 .cx = 10,
                 .cy = 10,
-                .theta = fmodf(time*2.4f, FM_PI*2)
-            };
+                .theta = fmodf(time * 2.4f, FM_PI * 2)};
             for (PlyNum i = 0; i < MAXPLAYERS; i++)
             {
-                if (!player_has_won(i)) continue;
+                if (!player_has_won(i))
+                    continue;
                 rdpq_set_prim_color(player_colors[i]);
-                rdpq_sprite_blit(icon_star, display_get_width()/2 - 50, ycur - 3, &blitparms);
-                rdpq_sprite_blit(icon_star, display_get_width()/2 + 50, ycur - 3, &blitparms);
+                rdpq_sprite_blit(icon_star, display_get_width() / 2 - 50, ycur - 3, &blitparms);
+                rdpq_sprite_blit(icon_star, display_get_width() / 2 + 50, ycur - 3, &blitparms);
                 ycur += 22;
             }
 
@@ -292,12 +303,15 @@ void results_loop(float deltatime)
             ycur += 34;
             for (PlyNum i = 0; i < MAXPLAYERS; i++)
             {
-                if (!player_has_won(i)) continue;
-                rdpq_text_printf(&parms, FONT_TEXT, pos_x, ycur, "Player %d", i+1);
+                if (!player_has_won(i))
+                    continue;
+                rdpq_text_printf(&parms, FONT_TEXT, pos_x, ycur, "Player %d", i + 1);
                 ycur += 22;
             }
             rdpq_text_printf(&parms, FONT_TEXT, pos_x, ycur, "won!");
-        } else {
+        }
+        else
+        {
             int ytmp = ycur;
 
             ycur += 15;
@@ -313,18 +327,13 @@ void results_loop(float deltatime)
                 for (int j = 0; j < points_to_win; j++)
                 {
                     rdpq_set_prim_color(RGBA32(0x20, 0x20, 0x20, 0xFF));
-                    rdpq_sprite_blit(icon_player, pos_x + 10 + (j+1) * 30, ycur, NULL);
+                    rdpq_sprite_blit(icon_player, pos_x + 10 + (j + 1) * 30, ycur, NULL);
 
                     float point_scale = get_point_scale(i, j);
-                    if (point_scale > 0.0f) {
+                    if (point_scale > 0.0f)
+                    {
                         rdpq_set_prim_color(RGBA32(0xFF, 0xFF, 0xFF, 0xFF));
-                        rdpq_sprite_blit(icon_star, pos_x + 22 + (j+1) * 30, ycur+12, &(rdpq_blitparms_t){
-                            .cx = 10,
-                            .cy = 10,
-                            .scale_x = point_scale, 
-                            .scale_y = point_scale,
-                            .theta = fmodf(time*2.4f, FM_PI*2)
-                        });
+                        rdpq_sprite_blit(icon_star, pos_x + 22 + (j + 1) * 30, ycur + 12, &(rdpq_blitparms_t){.cx = 10, .cy = 10, .scale_x = point_scale, .scale_y = point_scale, .theta = fmodf(time * 2.4f, FM_PI * 2)});
                     }
                 }
 
@@ -339,46 +348,52 @@ void results_loop(float deltatime)
             rdpq_textparms_t plyparms = {
                 .style_id = FONT_STYLE_WHITE,
                 .width = 24,
-                .align = ALIGN_CENTER
-            };
+                .align = ALIGN_CENTER};
 
             for (PlyNum i = 0; i < MAXPLAYERS; i++)
             {
-                rdpq_text_printf(&plyparms, FONT_TEXT, pos_x + 10, ycur + 16, "P%d", i+1);
+                rdpq_text_printf(&plyparms, FONT_TEXT, pos_x + 10, ycur + 16, "P%d", i + 1);
 
-                if (core_get_winner(i)) {
-                    rdpq_text_printf(&plyparms, FONT_TEXT, pos_x + (points_to_win+1) * 30 + 5, ycur + 16, "+1");
+                if (core_get_winner(i))
+                {
+                    rdpq_text_printf(&plyparms, FONT_TEXT, pos_x + (points_to_win + 1) * 30 + 5, ycur + 16, "+1");
                 }
                 ycur += 30;
             }
         }
 
-        if (can_confirm) {
+        if (can_confirm)
+        {
             rdpq_text_printf(&parms, FONT_TEXT, pos_x, 200, "Press A to continue");
         }
     }
 
     // Fade out
-    if (fading_out) {
+    if (fading_out)
+    {
         float fade_time = time - fade_out_start;
-        float fade_out_factor = (fade_time/FADE_OUT_DURATION);
-        if (fade_out_factor > 1.0f) fade_out_factor = 1.0f;
+        float fade_out_factor = (fade_time / FADE_OUT_DURATION);
+        if (fade_out_factor > 1.0f)
+            fade_out_factor = 1.0f;
         rdpq_set_mode_standard();
         rdpq_mode_combiner(RDPQ_COMBINER_FLAT);
-        rdpq_set_prim_color(RGBA32(0, 0, 0, fade_out_factor*0xFF));
+        rdpq_set_prim_color(RGBA32(0, 0, 0, fade_out_factor * 0xFF));
         rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
         rdpq_fill_rectangle(0, 0, display_get_width(), display_get_height());
     }
 
     rdpq_detach_show();
 
-    if (can_confirm && !fading_out && btn.a) {
+    if (can_confirm && !fading_out && btn.a)
+    {
         fading_out = true;
         fade_out_start = time;
     }
 
-    if (fading_out && time > fade_out_start + FADE_OUT_DURATION + FADE_OUT_POST_DELAY) {
-        if (ending) {
+    if (fading_out && time > fade_out_start + FADE_OUT_DURATION + FADE_OUT_POST_DELAY)
+    {
+        if (ending)
+        {
             menu_reset();
             results_reset_points();
         }
