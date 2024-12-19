@@ -499,6 +499,12 @@ void minigame_cleanup()
     xm64player_stop(&music);
     xm64player_close(&music);
 
+    sprite_free(arrow_up_sprite);
+    sprite_free(arrow_down_sprite);
+    sprite_free(arrow_left_sprite);
+    sprite_free(arrow_right_sprite);
+    sprite_free(arrow_sprite);
+
     display_close();
     rdpq_text_unregister_font(FONT_TEXT);
     rdpq_font_free(font);

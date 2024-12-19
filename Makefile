@@ -1,5 +1,6 @@
 ROMNAME = gamejam2024
 ROMTITLE = "N64BREW GAMEJAM 2024"
+DEBUG = 1
 
 BUILD_DIR = build
 ASSETS_DIR = assets
@@ -33,13 +34,25 @@ ASSETS_LIST += $(subst $(ASSETS_DIR),$(FILESYSTEM_DIR),$(SOUND2_LIST:%.mp3=%.wav
 ASSETS_LIST += $(subst $(ASSETS_DIR),$(FILESYSTEM_DIR),$(MUSIC_LIST:%.xm=%.xm64))
 
 ifeq ($(DEBUG), 1)
-	N64_CFLAGS += -g -O0 -DDEBUG=$(DEBUG)
+	N64_CFLAGS += -g -DDEBUG=$(DEBUG)
 	N64_LDFLAGS += -g
-else
-	N64_CFLAGS += -O2
 endif
 
 all: $(ROMNAME).z64
+
+define MINIGAME_template
+SRC_$(1) = \
+	$$(wildcard $$(MINIGAME_DIR)/$(1)/*.c) \
+	$$(wildcard $$(MINIGAME_DIR)/$(1)/**/*.c) \
+	$$(wildcard $$(MINIGAME_DIR)/$(1)/*.cpp) \
+	$$(wildcard $$(MINIGAME_DIR)/$(1)/**/*.cpp) \
+	$$(wildcard $$(MINIGAME_DIR)/$(1)/**/**/*.cpp)
+$$(MINIGAMEDSO_DIR)/$(1).dso: $$(SRC_$(1):%.cpp=$$(BUILD_DIR)/%.o)
+$$(MINIGAMEDSO_DIR)/$(1).dso: $$(SRC_$(1):%.c=$$(BUILD_DIR)/%.o)
+-include $$(MINIGAME_DIR)/$(1)/$(1).mk
+endef
+
+$(foreach minigame, $(MINIGAMES_LIST), $(eval $(call MINIGAME_template,$(minigame))))
 
 $(FILESYSTEM_DIR)/%.sprite: $(ASSETS_DIR)/%.png
 	@mkdir -p $(dir $@)
@@ -71,20 +84,6 @@ $(FILESYSTEM_DIR)/%.xm64: $(ASSETS_DIR)/%.xm
 	@mkdir -p $(dir $@)
 	@echo "    [XM] $@"
 	$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o $(dir $@) "$<"
-
-define MINIGAME_template
-SRC_$(1) = \
-	$$(wildcard $$(MINIGAME_DIR)/$(1)/*.c) \
-	$$(wildcard $$(MINIGAME_DIR)/$(1)/**/*.c) \
-	$$(wildcard $$(MINIGAME_DIR)/$(1)/*.cpp) \
-	$$(wildcard $$(MINIGAME_DIR)/$(1)/**/*.cpp) \
-	$$(wildcard $$(MINIGAME_DIR)/$(1)/**/**/*.cpp)
-$$(MINIGAMEDSO_DIR)/$(1).dso: $$(SRC_$(1):%.cpp=$$(BUILD_DIR)/%.o)
-$$(MINIGAMEDSO_DIR)/$(1).dso: $$(SRC_$(1):%.c=$$(BUILD_DIR)/%.o)
--include $$(MINIGAME_DIR)/$(1)/$(1).mk
-endef
-
-$(foreach minigame, $(MINIGAMES_LIST), $(eval $(call MINIGAME_template,$(minigame))))
 
 MAIN_ELF_EXTERNS := $(BUILD_DIR)/$(ROMNAME).externs
 $(MAIN_ELF_EXTERNS): $(DSO_LIST)
