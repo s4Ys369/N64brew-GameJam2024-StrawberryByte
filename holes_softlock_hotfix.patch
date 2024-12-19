@@ -1,0 +1,53 @@
+diff --git a/code/sb_holes/scene.h b/code/sb_holes/scene.h
+index 4a9eb1a..10e7d93 100644
+--- a/code/sb_holes/scene.h
++++ b/code/sb_holes/scene.h
+@@ -84,18 +84,26 @@ void gameplay_fixedLoop(game_data *game, float deltaTime)
+     {
+         // Determine if a player has won
+         uint32_t alivePlayers = 0;
++        uint32_t humanPlayers = 0;
++        int highestScore = -1;
++        PlyNum highestScorePlayer = 0;
+         PlyNum lastPlayer = 0;
+         for (size_t i = 0; i < MAXPLAYERS; i++)
+         {
++            // Track players who are still alive
+             if (players[i].isAlive)
+             {
++                if (i < game->playerCount)
++                    humanPlayers++;
+                 alivePlayers++;
+                 lastPlayer = i;
+             }
+-            if (players[i].score >= 40)
++
++            // Track the player with the highest score
++            if (players[i].score > highestScore)
+             {
+-                alivePlayers = 1;
+-                lastPlayer = i;
++                highestScore = players[i].score;
++                highestScorePlayer = i;
+             }
+         }
+ 
+@@ -108,6 +116,18 @@ void gameplay_fixedLoop(game_data *game, float deltaTime)
+             sound_wavPlay(SFX_STOP, false);
+             game->scene = ENDING;
+         }
++
++        // Fix: If no human players remain, just set the alive player with the highest score
++        else if (humanPlayers == 0)
++        {
++            game->isEnding = true;
++            if (players[highestScorePlayer].isAlive)
++                game->winner = highestScorePlayer;
++            if (game->playerCount != 4)
++                sound_xmStop();
++            sound_wavPlay(SFX_STOP, false);
++            game->scene = ENDING;
++        }
+     }
+     else
+     {
